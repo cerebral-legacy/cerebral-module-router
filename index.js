@@ -11,6 +11,11 @@ var router = function (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
+  urlStorePath = options.urlStorePath || 'url';
+
+  function setUrl (input, state) {
+    state.set(urlStorePath, input.url);
+  }
 
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
@@ -62,7 +67,7 @@ var router = function (controller, routes, options) {
   });
 
   controller.on('change', function () {
-    addressbar.value = controller.get('url');
+    addressbar.value = controller.get(urlStorePath);
   });
 
   return router;

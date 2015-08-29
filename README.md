@@ -69,6 +69,16 @@ This gives you complete flexibility in how you want to handle route changes.
 ### setUrl
 Cerebral router will inject an action into the chains that can be triggered by the router. This action is called `setUrl` and just sets the current url in the state store. This keeps the addressbar in sync with the signal triggered and time travel debugging also works as expected.
 
+The path of the url in the state store is `'url'` by default, to change this you can pass a `urlStorePath` option to the router like this:
+
+```js
+Router(controller, {
+  '/messages': 'messagesOpened',
+  '/messages/:id': 'messageOpened'
+}, {
+  urlStorePath: ['nested', 'url'] // Default is 'url'
+});
+
 ### Hash
 By default the Cerebral router just takes control of the addressbar and all url changes are handled as normal urls, even hash urls are converted to normal urls. So any route changes you do, being hash or normal will be "captured". If you set the `onlyHash` option to true, only hash urls will be captured and they will also be display in the addressbar as hash routes. That also means you have to define all urls in hyperlinks as: `<a href="/#/">home</a>`, using `/#` in front of the actual url.
 
