@@ -3,6 +3,8 @@ An opinionated URL change handler for Cerebral
 
 The Cerebral Router as a concept allows you to create your application without thinking about routing and URLs at all. You just create signals as if you would trigger all of them manually. The router can then be hooked on and urls are routed to these already existing signals. So a URL change or manual signal trigger is transparent, it does not matter how you do it. The url will keep in sync.
 
+`npm install cerebral-router`
+
 ```js
 import controller from './controller.js';
 import Router from 'cerebral-router';
