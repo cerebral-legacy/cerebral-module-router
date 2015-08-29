@@ -1,14 +1,15 @@
 var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
 
-function setUrl (input, state) {
-  state.set('url', input.url);
-}
-
 module.exports = function (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
+  urlStorePath = options.urlStorePath || 'url';
+
+  function setUrl (input, state) {
+    state.set(urlStorePath, input.url);
+  }
 
   var wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
@@ -59,7 +60,7 @@ module.exports = function (controller, routes, options) {
   });
 
   controller.on('change', function () {
-    addressbar.value = controller.get('url');
+    addressbar.value = controller.get(urlStorePath);
   });
 
 };
