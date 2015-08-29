@@ -1,0 +1,28 @@
+{
+  "name": "cerebral-router",
+  "version": "0.1.0",
+  "description": "An opinionated URL change handler for Cerebral",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christianalfoni/cerebral-router.git"
+  },
+  "keywords": [
+    "router",
+    "cerebral",
+    "mvc"
+  ],
+  "author": "Christian Alfoni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/christianalfoni/cerebral-router/issues"
+  },
+  "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
+  "dependencies": {
+    "addressbar": "^0.1.15",
+    "url-mapper": "^0.2.1"
+  }
+}
