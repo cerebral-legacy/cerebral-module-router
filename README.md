@@ -16,7 +16,7 @@ Router(controller, {
   '/': 'homeOpened',
   '/admin': 'adminOpened'
 }, {
-  onlyHash: true // Default is false
+  onlyHash: false // Default is false
 });
 ```
 
