@@ -11,7 +11,8 @@ var router = function (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
-  urlStorePath = options.urlStorePath || 'url';
+
+  var urlStorePath = options.urlStorePath || 'url';
 
   function setUrl (input, state) {
     state.set(urlStorePath, input.url);
