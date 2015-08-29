@@ -65,7 +65,6 @@ var router = function (controller, routes, options) {
   });
 
   controller.on('change', function () {
-    console.log(addressbar.value, controller.get(urlStorePath));
     addressbar.value = controller.get(urlStorePath);
   });
 
