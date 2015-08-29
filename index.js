@@ -18,7 +18,7 @@ module.exports = function (controller, routes, options) {
       signal.chain.unshift(setUrl);
     }
 
-    wrappedRoutes[route] = function (input) {
+    controller.signals[routes[route]] = wrappedRoutes[route] = function (input) {
 
       var params = route.match(/:.[^\/]*/g);
       var url = route;
@@ -27,17 +27,20 @@ module.exports = function (controller, routes, options) {
       // params passed from addressbar
       if (params) {
         url = params.reduce(function (url, param) {
-          return url.replace(param, (input.params || input)[param.substr(1, param.length)]);
+          var key = param.substr(1, param.length);
+          return url.replace(param, (input.params || input)[key]);
         }, url);
       }
-      
-      addressbar.value = url;
+
+      url = options.onlyHash ? '/#' + url : url;
+      addressbar.value = input.params ? location.href : location.origin + url;
       input.url = url;
 
-      // If called from a url change, add params to input
+      // If called from a url change, add params and query to input
       if (params && input.params) {
         input = params.reduce(function (input, param) {
-          input[param] = input.params[param];
+          var key = param.substr(1, param.length);
+          input[key] = input.params[key];
           return input;
         }, input);
       }
@@ -49,7 +52,7 @@ module.exports = function (controller, routes, options) {
   }, {});
 
   addressbar.on('change', function (event) {
-    if (!options.onlyHash || options.onlyHash && event.target.value.indexOf('#') >= 0) {
+    if (!options.onlyHash || (options.onlyHash && event.target.value.indexOf('#') >= 0)) {
       event.preventDefault();
       urlMapper(event.target.value, wrappedRoutes);
     }
