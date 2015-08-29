@@ -27,6 +27,7 @@ The Cerebral router allows you to trigger signals directly or with a url. It has
 // By signal
 controller.signals.homeOpened();
 ```
+Even when triggering the signal directly the URL will be reflected.
 
 ### Dynamic routes
 ```js
