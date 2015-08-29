@@ -22,6 +22,7 @@ var router = function (controller, routes, options) {
 
     controller.signals[routes[route]] = wrappedRoutes[route] = function (input) {
 
+      input = input || {};
       var params = route.match(/:.[^\/]*/g);
       var url = route;
 
