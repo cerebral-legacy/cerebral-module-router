@@ -16,8 +16,15 @@ var router = function (controller, routes, options) {
 
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
+
     var signal = controller.signals[routes[route]];
 
+    // In case already wrapped
+    if (signal.signal) {
+      signal = signal.signal;
+    }
+
+    // Might already be wrapped
     if (signal.chain[0] !== setUrl) {
       signal.chain = [setUrl].concat(signal.chain);
     }
@@ -54,21 +61,27 @@ var router = function (controller, routes, options) {
       signal.apply(null, isSync ? [arguments[0], input, arguments[2]] : [input, arguments[1]]);
     };
 
+    // Keep the signal reference in case more routes uses same signal
+    controller.signals[routes[route]].signal = signal;
+
     return wrappedRoutes;
 
   }, {});
 
   addressbar.on('change', function (event) {
+
+    if (controller.store.isRemembering()) {
+      return;
+    }
+
     if (!options.onlyHash || (options.onlyHash && event.target.value.indexOf('#') >= 0)) {
       event.preventDefault();
       urlMapper(event.target.value, wrappedRoutes);
     }
+
   });
 
   controller.on('change', function () {
-    if (controller.store.isRemembering()) {
-      return;
-    }
     addressbar.value = controller.get(urlStorePath);
   });
 
