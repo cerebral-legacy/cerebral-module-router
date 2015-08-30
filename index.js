@@ -40,7 +40,6 @@ var router = function (controller, routes, options) {
 
       url = url === '.*' ? location.href : url;
       url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
-      addressbar.value = input.params ? location.href : location.origin + url;
       input.url = url;
 
       // If called from a url change, add params and query to input
@@ -51,6 +50,7 @@ var router = function (controller, routes, options) {
           return input;
         }, input);
       }
+      // TODO: Should run sync on first route
       signal.apply(null, isSync ? [arguments[0], input, arguments[2]] : [input, arguments[1]]);
     };
 
@@ -66,6 +66,9 @@ var router = function (controller, routes, options) {
   });
 
   controller.on('change', function () {
+    if (controller.store.isRemembering()) {
+      return;
+    }
     addressbar.value = controller.get(urlStorePath);
   });
 
