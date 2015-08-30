@@ -38,7 +38,8 @@ var router = function (controller, routes, options) {
         }, url);
       }
 
-      url = options.onlyHash ? '/#' + url : url;
+      url = url === '*' ? location.href : url;
+      url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
       addressbar.value = input.params ? location.href : location.origin + url;
       input.url = url;
 
