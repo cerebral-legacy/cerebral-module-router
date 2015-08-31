@@ -1,4 +1,4 @@
-var urlMapper = require('./../url-mapper/index.js');
+var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
 
 var wrappedRoutes = null;
