@@ -1,4 +1,4 @@
-var urlMapper = require('url-mapper');
+var urlMapper = require('./../url-mapper/index.js');
 var addressbar = require('addressbar');
 
 var wrappedRoutes = null;
@@ -45,7 +45,7 @@ var router = function (controller, routes, options) {
         }, url);
       }
 
-      url = url === '.*' ? location.href : url;
+      url = url === '*' ? location.href : url;
       url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
       input.url = url;
 
