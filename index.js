@@ -74,7 +74,7 @@ var router = function (controller, routes, options) {
       return;
     }
 
-    if (!options.onlyHash || (options.onlyHash && event.target.value.indexOf('#') >= 0)) {
+    if (!options.onlyHash || event.target.value === location.origin + '/' || (options.onlyHash && event.target.value.indexOf('#') >= 0)) {
       event.preventDefault();
       urlMapper(event.target.value, wrappedRoutes);
     }
@@ -82,7 +82,8 @@ var router = function (controller, routes, options) {
   });
 
   controller.on('change', function () {
-    addressbar.value = controller.get(urlStorePath);
+    var url = controller.get(urlStorePath) || (options.onlyHash ? '/#/' : '/');
+    addressbar.value = url;
   });
 
   return router;
