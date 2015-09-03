@@ -31,8 +31,8 @@ var router = function (controller, routes, options) {
 
     controller.signals[routes[route]] = wrappedRoutes[route] = function () {
 
-      var isSync = arguments[0] === true;
-      var input = isSync ? arguments[1] : arguments[0] || {};
+      var hasSync = arguments[0] === true;
+      var input = hasSync ? arguments[1] : arguments[0] || {};
       var params = route.match(/:.[^\/]*/g);
       var url = route;
 
@@ -57,8 +57,8 @@ var router = function (controller, routes, options) {
           return input;
         }, input);
       }
-      // TODO: Should run sync on first route
-      signal.apply(null, isSync ? [arguments[0], input, arguments[2]] : [input, arguments[1]]);
+      // Should always run sync
+      signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
     };
 
     // Keep the signal reference in case more routes uses same signal
