@@ -96,4 +96,10 @@ router.start = function () {
 
 };
 
+router.redirect = function (route) {
+  return function redirect () {
+    urlMapper(route, wrappedRoutes);
+  }
+};
+
 module.exports = router;
