@@ -45,9 +45,9 @@ var router = function (controller, routes, options) {
         }, url);
       }
 
-      url = url === '*' ? location.href : url;
+      url = url === '*' ? location.pathname : url;
       url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
-      input.url = url;
+      input.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
 
       // If called from a url change, add params and query to input
       if (params && input.params) {
@@ -76,14 +76,16 @@ var router = function (controller, routes, options) {
 
     if (!options.onlyHash || event.target.value === location.origin + '/' || (options.onlyHash && event.target.value.indexOf('#') >= 0)) {
       event.preventDefault();
-      urlMapper(event.target.value, wrappedRoutes);
+      var url = event.target.value.replace(location.origin, '');
+      url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
+      urlMapper(url, wrappedRoutes);
     }
 
   });
 
   controller.on('change', function () {
     var url = controller.get(urlStorePath) || (options.onlyHash ? '/#/' : '/');
-    addressbar.value = url;
+    addressbar.value = options.baseUrl ? options.baseUrl + url : url;
   });
 
   return router;

@@ -16,7 +16,8 @@ Router(controller, {
   '/': 'homeOpened',
   '/admin': 'adminOpened'
 }, {
-  onlyHash: true // Default is false
+  onlyHash: true, // Default is false
+  baseUrl: '/todomvc' // Where you are routing from (optional)
 }).start(); // Call start to map the current URL
 ```
 
@@ -80,7 +81,7 @@ Router(controller, {
 });
 ```
 
-### redirect
+### Redirect
 You can redirect to a different url from within a signal. This will cause a new signal to trigger. Using the debugger you will have to time travel debug to see the initial signal that caused the redirect.
 
 ```js
