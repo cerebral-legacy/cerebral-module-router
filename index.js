@@ -19,6 +19,10 @@ var router = function (controller, routes, options) {
 
     var signal = controller.signals[routes[route]];
 
+    if(!signal) {
+      throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
+    }
+
     // In case already wrapped
     if (signal.signal) {
       signal = signal.signal;
