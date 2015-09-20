@@ -3,10 +3,12 @@ var addressbar = require('addressbar');
 
 var wrappedRoutes = null;
 
-var router = function (controller, routes, options) {
+function router (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
+  router.controller = controller;
+  router.options = options;
 
   var urlStorePath = options.urlStorePath || 'url';
 
@@ -98,7 +100,18 @@ var router = function (controller, routes, options) {
 
 router.start = router.trigger = function () {
 
-  urlMapper(location.href, wrappedRoutes);
+  var controller = router.controller;
+  var options = router.options;
+  
+  // If developing, remember signals before
+  // route trigger
+  if (controller.store.getSignals().length) {
+    controller.store.remember(controller.store.getSignals().length - 1);
+  }
+
+  var url = location.href.replace(location.origin, '');
+  url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
+  urlMapper(url, wrappedRoutes);
 
 };
 
