@@ -96,7 +96,7 @@ var router = function (controller, routes, options) {
 
 };
 
-router.start = function () {
+router.start = router.trigger = function () {
 
   urlMapper(location.href, wrappedRoutes);
 

@@ -18,7 +18,7 @@ Router(controller, {
 }, {
   onlyHash: true, // Default is false
   baseUrl: '/todomvc' // Where you are routing from (optional)
-}).start(); // Call start to map the current URL
+}).trigger(); // Call trigger to map the current URL (start is DEPRECATED)
 ```
 
 The Cerebral router allows you to trigger signals directly or with a url. It has the exact same effect. So:
