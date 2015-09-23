@@ -13,7 +13,7 @@ function router (controller, routes, options) {
   var urlStorePath = options.urlStorePath || 'url';
 
   function setUrl (input, state, output) {
-    state.set(urlStorePath, input.url);
+    state.set(urlStorePath, input.route.url);
   }
 
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
@@ -38,7 +38,20 @@ function router (controller, routes, options) {
     controller.signals[routes[route]] = wrappedRoutes[route] = function () {
 
       var hasSync = arguments[0] === true;
-      var input = hasSync ? arguments[1] : arguments[0] || {};
+      var payload = hasSync ? arguments[1] : arguments[0] || {};
+
+      var input = payload;
+      input.route = {
+        url: payload.url,
+        path: payload.path,
+        params: payload.params,
+        query: payload.query
+      };
+      delete input.url;
+      delete input.path;
+      delete input.params;
+      delete input.query;
+
       var params = route.match(/:.[^\/]*/g);
       var url = route;
 
@@ -47,22 +60,23 @@ function router (controller, routes, options) {
       if (params) {
         url = params.reduce(function (url, param) {
           var key = param.substr(1, param.length);
-          return url.replace(param, (input.params || input)[key]);
+          return url.replace(param, (input.route.params || input)[key]);
         }, url);
       }
 
       url = url === '*' ? location.pathname : url;
       url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
-      input.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
+      input.route.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
 
       // If called from a url change, add params and query to input
-      if (params && input.params) {
+      if (params && input.route.params) {
         input = params.reduce(function (input, param) {
           var key = param.substr(1, param.length);
-          input[key] = input.params[key];
+          input[key] = input.route.params[key];
           return input;
         }, input);
       }
+
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
     };
@@ -102,7 +116,7 @@ router.start = router.trigger = function () {
 
   var controller = router.controller;
   var options = router.options;
-  
+
   // If developing, remember signals before
   // route trigger
   if (controller.store.getSignals().length) {
