@@ -120,7 +120,7 @@ router.start = router.trigger = function () {
   // If developing, remember signals before
   // route trigger
   if (controller.store.getSignals().length) {
-    controller.store.remember(controller.store.getSignals().length - 1);
+    controller.store.rememberInitial(controller.store.getSignals().length - 1);
   }
 
   var url = location.href.replace(location.origin, '');
