@@ -1,6 +1,6 @@
 {
   "name": "cerebral-router",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
   "dependencies": {
-    "addressbar": "^0.1.15",
+    "addressbar": "^0.2.0",
     "url-mapper": "^0.2.1"
   }
 }
