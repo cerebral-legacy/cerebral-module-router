@@ -33,7 +33,12 @@ var createController = function () {
   var controller = {
     signals: {},
     signal: function (name, cb) {
-      controller.signals[name] = createSignal(cb);
+      var path = name.split('.');
+      var parent = controller.signals;
+      while (path.length - 1) {
+        parent = parent[path.shift()] = {};
+      }
+      parent[path[0]] = createSignal(cb);
     },
     store: {
       getSignals: function () {
@@ -74,6 +79,23 @@ exports['should run signal synchronously'] = function (test) {
 
   Router(controller, {
     '/': 'test'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+};
+
+exports['should run nested signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test.test1.test2', function () {
+    test.ok(true);
+  });
+
+  Router(controller, {
+    '/': 'test.test1.test2'
   }).trigger();
 
   test.expect(1);

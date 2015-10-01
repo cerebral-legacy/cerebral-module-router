@@ -24,12 +24,14 @@ function router (controller, routes, options) {
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
     var signalPath = routes[route].split('.');
-    var signal = controller.signals;
-    while(signalPath.length) {
-      signal = signal[signalPath.shift()];
-      if(!signal) {
-        throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
-      }
+    var signalParent = controller.signals;
+    var signal;
+    while(signalPath.length - 1) {
+      signalParent = signalParent[signalPath.shift()];
+    }
+    signal = signalParent[signalPath];
+    if(!signal) {
+      throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
     }
 
     if (signal.name === 'wrappedSignal') {
@@ -38,7 +40,7 @@ function router (controller, routes, options) {
       signal.chain = [setUrl].concat(signal.chain);
     }
 
-    controller.signals[routes[route]] = wrappedRoutes[route] = function wrappedSignal() {
+    signalParent[signalPath[0]] = wrappedRoutes[route] = function wrappedSignal() {
 
       var hasSync = arguments[0] === true;
       var payload = hasSync ? arguments[1] : arguments[0] || {};
