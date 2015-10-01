@@ -25,17 +25,13 @@ function router (controller, routes, options) {
       throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
     }
 
-    // In case already wrapped
-    if (signal.signal) {
-      signal = signal.signal;
-    }
-
-    // Might already be wrapped
-    if (signal.chain[0] !== setUrl) {
+    if (signal.name === 'wrappedSignal') {
+      throw new Error('Cerebral router - The signal "' + routes[route] + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
+    } else {
       signal.chain = [setUrl].concat(signal.chain);
     }
 
-    controller.signals[routes[route]] = wrappedRoutes[route] = function () {
+    controller.signals[routes[route]] = wrappedRoutes[route] = function wrappedSignal() {
 
       var hasSync = arguments[0] === true;
       var payload = hasSync ? arguments[1] : arguments[0] || {};
@@ -55,34 +51,49 @@ function router (controller, routes, options) {
       var params = route.match(/:.[^\/]*/g);
       var url = route;
 
-      // Create url based on direct signal input or
-      // params passed from addressbar
       if (params) {
+        // If called from a url change, add params and query to input
+        if (input.route.params) {
+          input = params.reduce(function (input, param) {
+            var key = param.substr(1, param.length);
+            input[key] = input.route.params[key];
+            return input;
+          }, input);
+        }
+
+        // Create url based on direct signal input or
+        // params passed from addressbar
         url = params.reduce(function (url, param) {
           var key = param.substr(1, param.length);
-          return url.replace(param, (input.route.params || input)[key]);
+          if (!(key in input)) {
+            throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
+          }
+          return url.replace(param, input[key] || '');
         }, url);
+
+        // Check resulted url still matches given route
+        var urlMatched = false;
+        var checkRoute = {};
+
+        checkRoute[route] = function () {
+          urlMatched = true;
+        };
+
+        urlMapper(url, checkRoute);
+
+        if (!urlMatched) {
+          throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
+                          'Check required params provided to signal is not falsy.');
+        }
       }
 
       url = url === '*' ? location.pathname : url;
       url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
       input.route.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
 
-      // If called from a url change, add params and query to input
-      if (params && input.route.params) {
-        input = params.reduce(function (input, param) {
-          var key = param.substr(1, param.length);
-          input[key] = input.route.params[key];
-          return input;
-        }, input);
-      }
-
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
     };
-
-    // Keep the signal reference in case more routes uses same signal
-    controller.signals[routes[route]].signal = signal;
 
     return wrappedRoutes;
 
