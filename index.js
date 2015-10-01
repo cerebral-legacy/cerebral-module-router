@@ -1,5 +1,10 @@
 var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
+var location = window.history.location || window.location;
+
+if (!location.origin) {
+  location.origin = location.protocol + "//" + location.hostname + (location.port ? ':' + location.port: '');
+}
 
 var wrappedRoutes = null;
 
