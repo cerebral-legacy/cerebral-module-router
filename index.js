@@ -51,27 +51,30 @@ function router (controller, routes, options) {
       var params = route.match(/:.[^\/]*/g);
       var url = route;
 
-      // Create url based on direct signal input or
-      // params passed from addressbar
       if (params) {
+        // If called from a url change, add params and query to input
+        if (input.route.params) {
+          input = params.reduce(function (input, param) {
+            var key = param.substr(1, param.length);
+            input[key] = input.route.params[key];
+            return input;
+          }, input);
+        }
+
+        // Create url based on direct signal input or
+        // params passed from addressbar
         url = params.reduce(function (url, param) {
           var key = param.substr(1, param.length);
-          return url.replace(param, (input.route.params || input)[key]);
+          if (!(key in input)) {
+            throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
+          }
+          return url.replace(param, input[key]);
         }, url);
       }
 
       url = url === '*' ? location.pathname : url;
       url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
       input.route.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
-
-      // If called from a url change, add params and query to input
-      if (params && input.route.params) {
-        input = params.reduce(function (input, param) {
-          var key = param.substr(1, param.length);
-          input[key] = input.route.params[key];
-          return input;
-        }, input);
-      }
 
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
