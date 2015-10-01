@@ -3,6 +3,11 @@
 global.location = {
   href: '/'
 };
+global.window = {
+  history: {
+    location: global.location
+  }
+};
 global.addEventListener = function () {};
 global.document = {};
 var proxyquire = require('proxyquire');
