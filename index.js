@@ -25,17 +25,13 @@ function router (controller, routes, options) {
       throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
     }
 
-    // In case already wrapped
-    if (signal.signal) {
-      signal = signal.signal;
-    }
-
-    // Might already be wrapped
-    if (signal.chain[0] !== setUrl) {
+    if (signal.name === 'wrappedSignal') {
+      throw new Error('Cerebral router - The signal "' + routes[route] + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
+    } else {
       signal.chain = [setUrl].concat(signal.chain);
     }
 
-    controller.signals[routes[route]] = wrappedRoutes[route] = function () {
+    controller.signals[routes[route]] = wrappedRoutes[route] = function wrappedSignal() {
 
       var hasSync = arguments[0] === true;
       var payload = hasSync ? arguments[1] : arguments[0] || {};
@@ -80,9 +76,6 @@ function router (controller, routes, options) {
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
     };
-
-    // Keep the signal reference in case more routes uses same signal
-    controller.signals[routes[route]].signal = signal;
 
     return wrappedRoutes;
 
