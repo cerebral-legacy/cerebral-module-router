@@ -18,11 +18,13 @@ function router (controller, routes, options) {
 
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
-
-    var signal = controller.signals[routes[route]];
-
-    if(!signal) {
-      throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
+    var signalPath = routes[route].split('.');
+    var signal = controller.signals;
+    while(signalPath.length) {
+      signal = signal[signalPath.shift()];
+      if(!signal) {
+        throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
+      }
     }
 
     // In case already wrapped

@@ -4,7 +4,7 @@
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nodeunit tests"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,10 @@
   "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
   "dependencies": {
     "addressbar": "^0.2.0",
-    "url-mapper": "^0.2.1"
+    "url-mapper": "^0.2.2"
+  },
+  "devDependencies": {
+    "nodeunit": "^0.9.1",
+    "proxyquire": "^1.7.2"
   }
 }
