@@ -17,7 +17,7 @@ var addressbarStub = {
 };
 proxyquire('./../index.js', { 'addressbar': addressbarStub });
 
-// TESTING
+// SETUP
 var Router = require('./../index.js');
 var createSignal = function (cb) {
   var signal = function () { cb.apply(null, arguments); };
@@ -40,7 +40,7 @@ var createController = function () {
   return controller;
 };
 
-
+// TESTS
 exports['should match route with signal'] = function (test) {
 
   global.location.href = '/';
@@ -107,4 +107,64 @@ exports['should throw on missing signal'] = function (test) {
   });
 
   test.done();
+};
+
+exports['should throw on duplicate signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+
+  test.throws(function () {
+    Router(controller, {
+      '/': 'test',
+      '/:test': 'test'
+    });
+  });
+
+  test.done();
+};
+
+exports['should throw if missing param manually running a bound signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  var signal = controller.signal('test', function (isSync, input) {
+
+  });
+
+  Router(controller, {
+    '/:param': 'test'
+  });
+
+  test.throws(function () {
+    controller.signals.test();
+  });
+
+  test.done();
+
+};
+
+exports['should NOT throw if passing param manually to a bound signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  var signal = controller.signal('test', function (isSync, input) {
+
+  });
+
+  Router(controller, {
+    '/:param': 'test'
+  });
+
+  test.doesNotThrow(function () {
+    controller.signals.test({
+      param: 'test2'
+    });
+  });
+
+  test.done();
+
 };
