@@ -68,8 +68,23 @@ function router (controller, routes, options) {
           if (!(key in input)) {
             throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
           }
-          return url.replace(param, input[key]);
+          return url.replace(param, input[key] || '');
         }, url);
+
+        // Check resulted url still matches given route
+        var urlMatched = false;
+        var checkRoute = {};
+
+        checkRoute[route] = function () {
+          urlMatched = true;
+        };
+
+        urlMapper(url, checkRoute);
+
+        if (!urlMatched) {
+          throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
+                          'Check required params provided to signal is not falsy.');
+        }
       }
 
       url = url === '*' ? location.pathname : url;
