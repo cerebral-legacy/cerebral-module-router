@@ -1,4 +1,3 @@
-
 // MOCKING
 global.location = {
   href: '/'
@@ -23,32 +22,13 @@ var addressbarStub = {
 proxyquire('./../index.js', { 'addressbar': addressbarStub });
 
 // SETUP
+var Controller = require('cerebral');
+var Model = require('cerebral-baobab');
 var Router = require('./../index.js');
-var createSignal = function (cb) {
-  var signal = function () { cb.apply(null, arguments); };
-  signal.chain = [];
-  return signal;
-};
-var createController = function () {
-  var controller = {
-    signals: {},
-    signal: function (name, cb) {
-      var path = name.split('.');
-      var parent = controller.signals;
-      while (path.length - 1) {
-        parent = parent[path.shift()] = {};
-      }
-      parent[path[0]] = createSignal(cb);
-    },
-    store: {
-      getSignals: function () {
-        return [];
-      }
-    },
-    on: function () {}
-  };
-  return controller;
-};
+
+function createController() {
+  return Controller(Model({}));
+}
 
 // TESTS
 exports['should match route with signal'] = function (test) {
@@ -73,15 +53,22 @@ exports['should run signal synchronously'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function (isSync) {
-    test.equal(isSync, true);
+  controller.signal('test', function () {
+    test.ok(true);
   });
+  
+  // async run before wrapping
+  controller.signals.test();
 
+  // sync run on trigger
   Router(controller, {
     '/': 'test'
   }).trigger();
 
-  test.expect(1);
+  // sync run after wrapping
+  controller.signals.test();
+
+  test.expect(2);
   test.done();
 };
 
@@ -102,13 +89,19 @@ exports['should run nested signal'] = function (test) {
   test.done();
 };
 
-exports['should match and pass params'] = function (test) {
+exports['should match and pass route and params to input'] = function (test) {
 
   global.location.href = '/test';
 
   var controller = createController();
-  controller.signal('test', function (isSync, input) {
-    test.deepEqual(input.route.params, {
+  controller.signal('test', function (input) {
+    test.deepEqual(input, {
+      route: {
+        url: '/test',
+        path: '/test',
+        params: { param: 'test' },
+        query: {}
+      },
       param: 'test'
     });
   });
@@ -157,8 +150,7 @@ exports['should throw if missing param manually running a bound signal'] = funct
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function (isSync, input) {
-
+  controller.signal('test', function () {
   });
 
   Router(controller, {
@@ -173,13 +165,32 @@ exports['should throw if missing param manually running a bound signal'] = funct
 
 };
 
+exports['should throw if resulted url didn\'t matches a route'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function (input) {
+  });
+
+  Router(controller, {
+    '/:param': 'test'
+  });
+
+  test.throws(function () {
+    controller.signals.test({ param: '' });
+  });
+
+  test.done();
+
+};
+
 exports['should NOT throw if passing param manually to a bound signal'] = function (test) {
 
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function (isSync, input) {
-
+  controller.signal('test', function (input) {
   });
 
   Router(controller, {
@@ -192,6 +203,99 @@ exports['should NOT throw if passing param manually to a bound signal'] = functi
     });
   });
 
+  test.done();
+
+};
+
+exports['should match `*` route and set correct url'] = function (test) {
+
+  global.location.href = '/test';
+  global.location.pathname = '/test';
+
+  var controller = createController();
+  controller.signal('test', function (input) {
+    test.equal(input.route.url, '/test');
+  });
+
+  Router(controller, {
+    '*': 'test'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+};
+
+exports['should match and set correct url with onlyHash option'] = function (test) {
+
+  global.location.href = '/test';
+
+  var controller = createController();
+  controller.signal('test', function (input) {
+    test.equal(input.route.url, '/#/test');
+  });
+
+  Router(controller, {
+    '/test': 'test'
+  }, {
+    onlyHash: true
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+};
+
+exports['should match and set correct url with baseUrl option'] = function (test) {
+
+  global.location.href = '/base/test';
+
+  var controller = createController();
+  controller.signal('test', function (input) {
+    test.equal(input.route.url, '/test');
+  });
+
+  Router(controller, {
+    '/test': 'test'
+  }, {
+    baseUrl: '/base'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+
+};
+
+exports['should set url into store'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function () {
+  });
+
+  Router(controller, {
+    '/': 'test'
+  }).trigger();
+
+  test.equals(controller.get(['url']), '/');
+  test.done();
+
+};
+
+exports['should set url into store at custom path'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function () {
+  });
+
+  Router(controller, {
+    '/': 'test'
+  }, {
+    urlStorePath: ['nested', 'url']
+  }).trigger();
+
+  test.equals(controller.get(['nested', 'url']), '/');
   test.done();
 
 };
