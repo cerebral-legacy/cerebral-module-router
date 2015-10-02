@@ -107,7 +107,7 @@ exports['should match and pass params'] = function (test) {
   global.location.href = '/test';
 
   var controller = createController();
-  var signal = controller.signal('test', function (isSync, input) {
+  controller.signal('test', function (isSync, input) {
     test.deepEqual(input.route.params, {
       param: 'test'
     });
@@ -157,7 +157,7 @@ exports['should throw if missing param manually running a bound signal'] = funct
   global.location.href = '/';
 
   var controller = createController();
-  var signal = controller.signal('test', function (isSync, input) {
+  controller.signal('test', function (isSync, input) {
 
   });
 
@@ -178,7 +178,7 @@ exports['should NOT throw if passing param manually to a bound signal'] = functi
   global.location.href = '/';
 
   var controller = createController();
-  var signal = controller.signal('test', function (isSync, input) {
+  controller.signal('test', function (isSync, input) {
 
   });
 
