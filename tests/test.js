@@ -89,9 +89,9 @@ exports['should run nested signal'] = function (test) {
   test.done();
 };
 
-exports['should match and pass route and params to input'] = function (test) {
+exports['should match and pass route, params and query to input'] = function (test) {
 
-  global.location.href = '/test';
+  global.location.href = '/test?foo=bar&bar=baz';
 
   var controller = createController();
   controller.signal('test', function (input) {
@@ -100,7 +100,7 @@ exports['should match and pass route and params to input'] = function (test) {
         url: '/test',
         path: '/test',
         params: { param: 'test' },
-        query: {}
+        query: { foo: "bar", bar: "baz" }
       },
       param: 'test'
     });
