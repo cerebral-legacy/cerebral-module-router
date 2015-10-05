@@ -9,6 +9,7 @@ global.window = {
 };
 global.addEventListener = function () {};
 global.document = {};
+
 var proxyquire = require('proxyquire');
 var addressbarStub = {
   value: '/',

@@ -1,5 +1,7 @@
 var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
+
+// Check if IE history polyfill is added
 var location = window.history.location || window.location;
 
 if (!location.origin) {
