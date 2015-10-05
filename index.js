@@ -23,6 +23,38 @@ function router (controller, routes, options) {
     state.set(urlStorePath, input.route.url);
   }
 
+  function getUrl(route, input) {
+    var url = route;
+    var params = route.match(/:.[^\/]*/g);
+    input = input || {};
+
+    if (params) {
+      // If called from a url change, add params and query to input
+      if (input.route && input.route.params) {
+        input = params.reduce(function (input, param) {
+          var key = param.substr(1, param.length);
+          input[key] = input.route.params[key];
+          return input;
+        }, input);
+      }
+
+      // Create url based on direct signal input or
+      // params passed from addressbar
+      url = params.reduce(function (url, param) {
+        var key = param.substr(1, param.length);
+        if (!(key in input)) {
+          throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
+        }
+        return url.replace(param, input[key] || '');
+      }, url);
+    }
+
+    url = url === '*' ? location.pathname : url;
+    url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
+
+    return url;
+  }
+
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
     var signalPath = routes[route].split('.');
@@ -59,47 +91,23 @@ function router (controller, routes, options) {
       delete input.params;
       delete input.query;
 
-      var params = route.match(/:.[^\/]*/g);
-      var url = route;
+      var url = getUrl(route, input);
 
-      if (params) {
-        // If called from a url change, add params and query to input
-        if (input.route.params) {
-          input = params.reduce(function (input, param) {
-            var key = param.substr(1, param.length);
-            input[key] = input.route.params[key];
-            return input;
-          }, input);
-        }
+      // Check resulted url still matches given route
+      var urlMatched = false;
+      var checkRoute = {};
 
-        // Create url based on direct signal input or
-        // params passed from addressbar
-        url = params.reduce(function (url, param) {
-          var key = param.substr(1, param.length);
-          if (!(key in input)) {
-            throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
-          }
-          return url.replace(param, input[key] || '');
-        }, url);
+      checkRoute[route] = function () {
+        urlMatched = true;
+      };
 
-        // Check resulted url still matches given route
-        var urlMatched = false;
-        var checkRoute = {};
+      urlMapper(url, checkRoute);
 
-        checkRoute[route] = function () {
-          urlMatched = true;
-        };
-
-        urlMapper(url, checkRoute);
-
-        if (!urlMatched) {
-          throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
-                          'Check required params provided to signal is not falsy.');
-        }
+      if (!urlMatched) {
+        throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
+                        'Check required params was provided to signal is none of them is falsy.');
       }
 
-      url = url === '*' ? location.pathname : url;
-      url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
       input.route.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
 
       // Should always run sync
@@ -108,7 +116,11 @@ function router (controller, routes, options) {
 
     wrappedRoutes[route].sync = function(payload){
       wrappedRoutes[route](true, payload);
-    }
+    };
+
+    wrappedRoutes[route].getUrl = function(payload){
+      return getUrl(route, payload);
+    };
 
     return wrappedRoutes;
 
