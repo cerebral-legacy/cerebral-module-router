@@ -106,6 +106,10 @@ function router (controller, routes, options) {
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
     };
 
+    wrappedRoutes[route].sync = function(payload){
+      wrappedRoutes[route](true, payload);
+    }
+
     return wrappedRoutes;
 
   }, {});
