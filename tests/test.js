@@ -301,7 +301,7 @@ exports['should set url into store at custom path'] = function (test) {
 
 };
 
-exports['should preserve sync method for wrapped signal'] = function (test) {
+exports['should preserve `sync` method for wrapped signal'] = function (test) {
 
   global.location.href = '/';
 
@@ -314,6 +314,23 @@ exports['should preserve sync method for wrapped signal'] = function (test) {
   });
 
   test.equals(typeof controller.signals.test.sync, 'function');
+  test.done();
+
+};
+
+exports['should expose `getUrl` method for wrapped signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function () {
+  });
+
+  Router(controller, {
+    '/:param': 'test'
+  });
+
+  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test');
   test.done();
 
 };
