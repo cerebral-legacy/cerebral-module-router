@@ -299,3 +299,20 @@ exports['should set url into store at custom path'] = function (test) {
   test.done();
 
 };
+
+exports['should preserve sync method for wrapped signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function () {
+  });
+
+  Router(controller, {
+    '/': 'test'
+  });
+
+  test.equals(typeof controller.signals.test.sync, 'function');
+  test.done();
+
+};
