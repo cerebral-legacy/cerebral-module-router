@@ -23,7 +23,7 @@
   "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
   "dependencies": {
     "addressbar": "^0.2.0",
-    "url-mapper": "^0.2.2"
+    "url-mapper": "^0.3.0"
   },
   "devDependencies": {
     "baobab": "^2.0.0",
