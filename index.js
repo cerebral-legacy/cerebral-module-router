@@ -42,22 +42,11 @@ function router (controller, routes, options) {
       signal.chain = [setUrl].concat(signal.chain);
     }
 
-    signalParent[signalPath[0]] = wrappedRoutes[route] = function wrappedSignal() {
+    function wrappedSignal() {
 
       var hasSync = arguments[0] === true;
-      var payload = hasSync ? arguments[1] : arguments[0] || {};
-
-      var input = payload;
-      input.route = {
-        url: payload.url,
-        path: payload.path,
-        params: payload.params,
-        query: payload.query
-      };
-      delete input.url;
-      delete input.path;
-      delete input.params;
-      delete input.query;
+      var input = hasSync ? arguments[1] : arguments[0] || {};
+      if (!input.route) input.route = {};
 
       var params = route.match(/:.[^\/]*/g);
       var url = route;
@@ -104,11 +93,18 @@ function router (controller, routes, options) {
 
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
+    }
+
+    // callback for urlMapper
+    wrappedRoutes[route] = function(payload) {
+      wrappedSignal({ route: payload });
     };
 
-    wrappedRoutes[route].sync = function(payload){
-      wrappedRoutes[route](true, payload);
-    }
+    signalParent[signalPath[0]] = wrappedSignal;
+
+    signalParent[signalPath[0]].sync = function(payload){
+      wrappedSignal(true, payload);
+    };
 
     return wrappedRoutes;
 
