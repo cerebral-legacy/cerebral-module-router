@@ -23,6 +23,53 @@ function router (controller, routes, options) {
     state.set(urlStorePath, input.route.url);
   }
 
+  function getUrl (route, input) {
+    var url = route;
+
+    var params = route.match(/:.[^\/]*/g);
+
+    if (params) {
+      // If called from a url change, add params and query to input
+      if (input.route && input.route.params) {
+        input = params.reduce(function (input, param) {
+          var key = param.substr(1, param.length);
+          input[key] = input.route.params[key];
+          return input;
+        }, input);
+      }
+
+      // Create url based on direct signal input or
+      // params passed from addressbar
+      url = params.reduce(function (url, param) {
+        var key = param.substr(1, param.length);
+        if (!(key in input)) {
+          throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
+        }
+        return url.replace(param, input[key] || '');
+      }, url);
+
+      // Check resulted url still matches given route
+      var urlMatched = false;
+      var checkRoute = {};
+
+      checkRoute[route] = function () {
+        urlMatched = true;
+      };
+
+      urlMapper(url, checkRoute);
+
+      if (!urlMatched) {
+        throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
+                        'Check required params provided to signal is not falsy.');
+      }
+    }
+
+    url = url === '*' ? location.pathname : url;
+    url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
+
+    return url;
+  }
+
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
     var signalPath = routes[route].split('.');
@@ -48,48 +95,7 @@ function router (controller, routes, options) {
       var input = hasSync ? arguments[1] : arguments[0] || {};
       if (!input.route) input.route = {};
 
-      var params = route.match(/:.[^\/]*/g);
-      var url = route;
-
-      if (params) {
-        // If called from a url change, add params and query to input
-        if (input.route.params) {
-          input = params.reduce(function (input, param) {
-            var key = param.substr(1, param.length);
-            input[key] = input.route.params[key];
-            return input;
-          }, input);
-        }
-
-        // Create url based on direct signal input or
-        // params passed from addressbar
-        url = params.reduce(function (url, param) {
-          var key = param.substr(1, param.length);
-          if (!(key in input)) {
-            throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
-          }
-          return url.replace(param, input[key] || '');
-        }, url);
-
-        // Check resulted url still matches given route
-        var urlMatched = false;
-        var checkRoute = {};
-
-        checkRoute[route] = function () {
-          urlMatched = true;
-        };
-
-        urlMapper(url, checkRoute);
-
-        if (!urlMatched) {
-          throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
-                          'Check required params provided to signal is not falsy.');
-        }
-      }
-
-      url = url === '*' ? location.pathname : url;
-      url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
-      input.route.url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
+      input.route.url = getUrl(route, input);
 
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
@@ -102,8 +108,13 @@ function router (controller, routes, options) {
 
     signalParent[signalPath[0]] = wrappedSignal;
 
-    signalParent[signalPath[0]].sync = function(payload){
+    wrappedSignal.sync = function(payload){
       wrappedSignal(true, payload);
+    };
+
+    wrappedSignal.getUrl = function(payload){
+      var url = getUrl(route, payload);
+      return options.baseUrl ? options.baseUrl + url : url;
     };
 
     return wrappedRoutes;

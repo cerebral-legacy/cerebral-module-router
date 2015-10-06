@@ -317,3 +317,23 @@ exports['should preserve sync method for wrapped signal'] = function (test) {
   test.done();
 
 };
+
+exports['should expose `getUrl` method for wrapped signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function () {
+  });
+
+  Router(controller, {
+    '/:param': 'test'
+  }, {
+    baseUrl: '/test',
+    onlyHash: true
+  });
+
+  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test/#/test');
+  test.done();
+
+};
