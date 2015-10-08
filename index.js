@@ -83,7 +83,7 @@ function router (controller, routes, options) {
       throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
     }
 
-    if (signal.name === 'wrappedSignal') {
+    if (typeof signal.getUrl === "function") {
       throw new Error('Cerebral router - The signal "' + routes[route] + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
     } else {
       signal.chain = [setUrl].concat(signal.chain);

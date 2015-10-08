@@ -135,6 +135,8 @@ exports['should throw on duplicate signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
+  controller.signal('test', function () {
+  });
 
   test.throws(function () {
     Router(controller, {
