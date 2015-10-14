@@ -135,6 +135,8 @@ exports['should throw on duplicate signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
+  controller.signal('test', function () {
+  });
 
   test.throws(function () {
     Router(controller, {
@@ -314,6 +316,26 @@ exports['should preserve sync method for wrapped signal'] = function (test) {
   });
 
   test.equals(typeof controller.signals.test.sync, 'function');
+  test.done();
+
+};
+
+exports['should expose `getUrl` method for wrapped signal'] = function (test) {
+
+  global.location.href = '/';
+
+  var controller = createController();
+  controller.signal('test', function () {
+  });
+
+  Router(controller, {
+    '/:param': 'test'
+  }, {
+    baseUrl: '/test',
+    onlyHash: true
+  });
+
+  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test/#/test');
   test.done();
 
 };
