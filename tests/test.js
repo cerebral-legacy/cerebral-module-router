@@ -37,9 +37,11 @@ exports['should match route with signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-    test.ok(true);
-  });
+  controller.signal('test', [
+    function () {
+      test.ok(true);
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -54,10 +56,12 @@ exports['should run signal synchronously'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-    test.ok(true);
-  });
-  
+  controller.signal('test', [
+    function () {
+      test.ok(true);
+    }
+  ]);
+
   // async run before wrapping
   controller.signals.test();
 
@@ -78,9 +82,11 @@ exports['should run nested signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test.test1.test2', function () {
-    test.ok(true);
-  });
+  controller.signal('test.test1.test2', [
+    function () {
+      test.ok(true);
+    }
+  ]);
 
   Router(controller, {
     '/': 'test.test1.test2'
@@ -95,17 +101,19 @@ exports['should match and pass route, params and query to input'] = function (te
   global.location.href = '/test?foo=bar&bar=baz';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.deepEqual(input, {
-      route: {
-        url: '/test',
-        path: '/test',
-        params: { param: 'test' },
-        query: { foo: "bar", bar: "baz" }
-      },
-      param: 'test'
-    });
-  });
+  controller.signal('test', [
+    function (input) {
+      test.deepEqual(input, {
+        route: {
+          url: '/test',
+          path: '/test',
+          params: { param: 'test' },
+          query: { foo: "bar", bar: "baz" }
+        },
+        param: 'test'
+      });
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -135,8 +143,10 @@ exports['should throw on duplicate signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   test.throws(function () {
     Router(controller, {
@@ -153,8 +163,10 @@ exports['should throw if missing param manually running a bound signal'] = funct
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -173,8 +185,10 @@ exports['should throw if resulted url didn\'t matches a route'] = function (test
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-  });
+  controller.signal('test', [
+    function (input) {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -193,8 +207,10 @@ exports['should NOT throw if passing param manually to a bound signal'] = functi
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-  });
+  controller.signal('test', [
+    function (input) {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -216,9 +232,11 @@ exports['should match `*` route and set correct url'] = function (test) {
   global.location.pathname = '/test';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.equal(input.route.url, '/test');
-  });
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
 
   Router(controller, {
     '*': 'test'
@@ -233,9 +251,11 @@ exports['should match and set correct url with onlyHash option'] = function (tes
   global.location.href = '/test';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.equal(input.route.url, '/#/test');
-  });
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/#/test');
+    }
+  ]);
 
   Router(controller, {
     '/test': 'test'
@@ -252,9 +272,11 @@ exports['should match and set correct url with baseUrl option'] = function (test
   global.location.href = '/base/test';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.equal(input.route.url, '/test');
-  });
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
 
   Router(controller, {
     '/test': 'test'
@@ -272,8 +294,10 @@ exports['should set url into store'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -289,8 +313,10 @@ exports['should set url into store at custom path'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -308,8 +334,10 @@ exports['should preserve sync method for wrapped signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -325,8 +353,10 @@ exports['should expose `getUrl` method for wrapped signal'] = function (test) {
   global.location.href = '/';
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'

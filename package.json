@@ -27,8 +27,8 @@
   },
   "devDependencies": {
     "baobab": "^2.0.0",
-    "cerebral": "^0.19.4",
-    "cerebral-baobab": "^0.2.5",
+    "cerebral": "^0.20.4",
+    "cerebral-baobab": "^0.3.0",
     "nodeunit": "^0.9.1",
     "proxyquire": "^1.7.2"
   }
