@@ -105,7 +105,7 @@ exports['should match and pass route, params and query to input'] = function (te
     function (input) {
       test.deepEqual(input, {
         route: {
-          url: '/test',
+          url: '/test?foo=bar&bar=baz',
           path: '/test',
           params: { param: 'test' },
           query: { foo: "bar", bar: "baz" }
@@ -246,9 +246,30 @@ exports['should match `*` route and set correct url'] = function (test) {
   test.done();
 };
 
-exports['should match and set correct url with onlyHash option'] = function (test) {
+exports['should match `/*` route and set correct url'] = function (test) {
 
   global.location.href = '/test';
+  global.location.pathname = '/test';
+
+  var controller = createController();
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
+
+  Router(controller, {
+    '/*': 'test'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+};
+
+
+exports['should match and set correct url with onlyHash option'] = function (test) {
+
+  global.location.href = '/#/test';
 
   var controller = createController();
   controller.signal('test', [
@@ -361,11 +382,29 @@ exports['should expose `getUrl` method for wrapped signal'] = function (test) {
   Router(controller, {
     '/:param': 'test'
   }, {
-    baseUrl: '/test',
-    onlyHash: true
+    baseUrl: '/test'
   });
 
-  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test/#/test');
+  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test/test');
+  test.done();
+
+};
+
+exports['should match regexp param'] = function (test) {
+
+  global.location.href = '/test-test-01';
+
+  var controller = createController();
+  controller.signal('test', [
+    function (input) {
+      test.deepEqual(input.route.params, { param: 'test', '0': '-01' });
+    }
+  ]);
+
+  Router(controller, {
+    '/:param(\\w+)-test(.*)': 'test'
+  }).trigger();
+
   test.done();
 
 };

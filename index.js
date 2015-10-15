@@ -1,5 +1,6 @@
 var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
+var pathToRegexp = require('path-to-regexp');
 
 // Check if IE history polyfill is added
 var location = window.history.location || window.location;
@@ -23,51 +24,14 @@ function router (controller, routes, options) {
     state.set(urlStorePath, input.route.url);
   }
 
+  // Create url based on direct signal input
   function getUrl (route, input) {
-    var url = route;
-
-    var params = route.match(/:.[^\/]*/g);
-
-    if (params) {
-      // If called from a url change, add params and query to input
-      if (input.route && input.route.params) {
-        input = params.reduce(function (input, param) {
-          var key = param.substr(1, param.length);
-          input[key] = input.route.params[key];
-          return input;
-        }, input);
-      }
-
-      // Create url based on direct signal input or
-      // params passed from addressbar
-      url = params.reduce(function (url, param) {
-        var key = param.substr(1, param.length);
-        if (!(key in input)) {
-          throw new Error('Cerebral router - The signal "' + routes[route] + '" is bound to "' + route + '" route, but required param "' + key + '" wasn\'t provided.');
-        }
-        return url.replace(param, input[key] || '');
-      }, url);
-
-      // Check resulted url still matches given route
-      var urlMatched = false;
-      var checkRoute = {};
-
-      checkRoute[route] = function () {
-        urlMatched = true;
-      };
-
-      urlMapper(url, checkRoute);
-
-      if (!urlMatched) {
-        throw new Error('Cerebral router - Computed url for signal "' + routes[route] +'" can\'t match given route "' + route + '".\n' +
-                        'Check required params provided to signal is not falsy.');
-      }
+    if (route === '*') {
+      return options.onlyHash? location.hash.splice(1) : location.pathname;
+      console.warn('Cerebral router - `*` catch all route definition is deprecated. Use `/*` to define catch all route instead');
+    } else {
+      return pathToRegexp.compile(route)(input);
     }
-
-    url = url === '*' ? location.pathname : url;
-    url = options.onlyHash && url.indexOf('#') === -1 ? '/#' + url : url;
-
-    return url;
   }
 
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
@@ -93,9 +57,21 @@ function router (controller, routes, options) {
 
       var hasSync = arguments[0] === true;
       var input = hasSync ? arguments[1] : arguments[0] || {};
-      if (!input.route) input.route = {};
+      if (!input.route) {
+        input.route = {
+          url: getUrl(route, input)
+        };
+      } else {
+        var params = pathToRegexp(route).keys;
 
-      input.route.url = getUrl(route, input);
+        // If called from a url change, add params to input
+        if (input.route && input.route.params) {
+          input = params.reduce(function (input, param) {
+            input[param.name] = input.route.params[param.name];
+            return input;
+          }, input);
+        }
+      }
 
       // Should always run sync
       signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
@@ -143,9 +119,9 @@ function router (controller, routes, options) {
 
   return router;
 
-};
+}
 
-router.start = router.trigger = function () {
+router.trigger = function () {
 
   var controller = router.controller;
   var options = router.options;
@@ -162,10 +138,15 @@ router.start = router.trigger = function () {
 
 };
 
+router.start = function () {
+  console.warn('Cerebral debugger - `start` method is deprecated. Use `trigger` method instead');
+  router.trigger();
+};
+
 router.redirect = function (route) {
   return function redirect () {
     urlMapper(route, wrappedRoutes);
-  }
+  };
 };
 
 module.exports = router;
