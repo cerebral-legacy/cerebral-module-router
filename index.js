@@ -154,10 +154,20 @@ function router (controller, routes, options) {
 
 }
 
-router.redirect = function (route) {
+router.redirect = function (url, replace) {
+  replace = (typeof replace === "undefined") ? true : replace;
+
   return function redirect () {
-    urlMapper(route, wrappedRoutes);
+    var options = router.options;
+
+    addressbar.value = {
+      value: options.baseUrl + url,
+      replace: true
+    };
+
+    urlMapper(url, wrappedRoutes);
   };
+
 };
 
 module.exports = router;

@@ -410,3 +410,26 @@ exports['should match regexp param'] = function (test) {
   test.done();
 
 };
+
+exports['should redirect'] = function (test) {
+
+  global.location.href = '/missing';
+
+  var controller = createController();
+  controller.signal('test', [
+    function (input) {
+      test.ok(true);
+    }
+  ]);
+  controller.signal('missing', [
+    Router.redirect('/existing')
+  ]);
+
+  Router(controller, {
+    '/existing': 'test',
+    '/*': 'missing'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+};
