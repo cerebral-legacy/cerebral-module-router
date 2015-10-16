@@ -15,11 +15,18 @@ function router (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
-  router.controller = controller;
+
+  if (!options.baseUrl && options.onlyHash) {
+    // autodetect baseUrl
+    options.baseUrl = location.pathname.replace(/\/$/, "");
+  }
+  options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '/#' : '');
+
   router.options = options;
 
   var urlStorePath = options.urlStorePath || 'url';
 
+  // action to inject
   function setUrl (input, state, output) {
     state.set(urlStorePath, input.route.url);
   }
@@ -90,12 +97,19 @@ function router (controller, routes, options) {
 
     wrappedSignal.getUrl = function(payload){
       var url = getUrl(route, payload);
-      return options.baseUrl ? options.baseUrl + url : url;
+      return options.baseUrl + url;
     };
 
     return wrappedRoutes;
 
   }, {});
+
+  function stripUrl (url){
+    // return stripped url only if it should be routed
+    if (url.indexOf(location.origin + router.options.baseUrl) === 0) {
+      return url.replace(location.origin + router.options.baseUrl, '');
+    }
+  }
 
   addressbar.on('change', function (event) {
 
@@ -103,45 +117,42 @@ function router (controller, routes, options) {
       return;
     }
 
-    if (!options.onlyHash || event.target.value === location.origin + '/' || (options.onlyHash && event.target.value.indexOf('#') >= 0)) {
+    var url = stripUrl(event.target.value);
+    if (url) {
       event.preventDefault();
-      var url = event.target.value.replace(location.origin, '');
-      url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
       urlMapper(url, wrappedRoutes);
     }
 
   });
 
+  router.trigger = function () {
+
+    // If developing, remember signals before
+    // route trigger
+    if (controller.store.getSignals().length) {
+      controller.store.rememberInitial(controller.store.getSignals().length - 1);
+    }
+
+    var url = stripUrl(location.href);
+    if (url) urlMapper(url, wrappedRoutes);
+
+  };
+
+  router.start = function () {
+    console.warn('Cerebral debugger - `start` method is deprecated. Use `trigger` method instead');
+    router.trigger();
+  };
+
   controller.on('change', function () {
-    var url = controller.get(urlStorePath) || (options.onlyHash ? '/#/' : '/');
-    addressbar.value = options.baseUrl ? options.baseUrl + url : url;
+
+    var url = controller.get(urlStorePath) || '/';
+    addressbar.value = options.baseUrl + url;
+
   });
 
   return router;
 
 }
-
-router.trigger = function () {
-
-  var controller = router.controller;
-  var options = router.options;
-
-  // If developing, remember signals before
-  // route trigger
-  if (controller.store.getSignals().length) {
-    controller.store.rememberInitial(controller.store.getSignals().length - 1);
-  }
-
-  var url = location.href.replace(location.origin, '');
-  url = options.baseUrl && url.substr(0, options.baseUrl.length) === options.baseUrl ? url.replace(options.baseUrl, '') : url;
-  urlMapper(url, wrappedRoutes);
-
-};
-
-router.start = function () {
-  console.warn('Cerebral debugger - `start` method is deprecated. Use `trigger` method instead');
-  router.trigger();
-};
 
 router.redirect = function (route) {
   return function redirect () {

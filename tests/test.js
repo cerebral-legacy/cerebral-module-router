@@ -23,6 +23,7 @@ var addressbarStub = {
 proxyquire('./../index.js', { 'addressbar': addressbarStub });
 
 // SETUP
+global.location.origin = '';
 var Controller = require('cerebral');
 var Model = require('cerebral-baobab');
 var Router = require('./../index.js');
@@ -263,6 +264,7 @@ exports['should match `/*` route and set correct url'] = function (test) {
   }).trigger();
 
   test.expect(1);
+  global.location.pathname = '';
   test.done();
 };
 
@@ -274,7 +276,7 @@ exports['should match and set correct url with onlyHash option'] = function (tes
   var controller = createController();
   controller.signal('test', [
     function (input) {
-      test.equal(input.route.url, '/#/test');
+      test.equal(input.route.url, '/test');
     }
   ]);
 
