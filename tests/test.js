@@ -6,10 +6,10 @@ global.window.location = {
 global.addEventListener = function () {};
 global.document = {};
 
-var baseUrl = 'http://localhost:3000/';
+var url = 'http://localhost:3000/';
 var proxyquire = require('proxyquire');
 var addressbarStub = {
-  value: baseUrl,
+  value: url,
   pathname: '/',
   origin: 'http://localhost:3000',
   set: function () {
@@ -31,7 +31,7 @@ function createController() {
 }
 
 function resetAddresbar() {
-  addressbarStub.value = baseUrl;
+  addressbarStub.value = url;
   addressbarStub.pathname = '/';
   addressbarStub.origin = 'http://localhost:3000';
 }
@@ -106,7 +106,7 @@ exports['should run nested signal'] = function (test) {
 exports['should match and pass route, params and query to input'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + 'test?foo=bar&bar=baz';
+  addressbarStub.value = url + 'test?foo=bar&bar=baz';
 
   var controller = createController();
   controller.signal('test', [
@@ -237,7 +237,7 @@ exports['should NOT throw if passing param manually to a bound signal'] = functi
 exports['should match `*` route and set correct url'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + 'test';
+  addressbarStub.value = url + 'test';
   addressbarStub.pathname = '/test';
 
   var controller = createController();
@@ -258,7 +258,7 @@ exports['should match `*` route and set correct url'] = function (test) {
 exports['should match `/*` route and set correct url'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + 'test';
+  addressbarStub.value = url + 'test';
   addressbarStub.pathname = '/test';
 
   var controller = createController();
@@ -279,7 +279,7 @@ exports['should match `/*` route and set correct url'] = function (test) {
 exports['should match and set correct url with onlyHash option'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + '#/test';
+  addressbarStub.value = url + '#/test';
   addressbarStub.hash = '#/test';
 
   var controller = createController();
@@ -302,7 +302,7 @@ exports['should match and set correct url with onlyHash option'] = function (tes
 exports['should match and set correct url with baseUrl option'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + 'base/test';
+  addressbarStub.value = url + 'base/test';
   addressbarStub.pathname = '/base/test';
 
   var controller = createController();
@@ -406,7 +406,7 @@ exports['should expose `getUrl` method for wrapped signal'] = function (test) {
 exports['should match regexp param'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + 'test-test-01';
+  addressbarStub.value = url + 'test-test-01';
   addressbarStub.pathname = '/test-test-01';
 
   var controller = createController();
@@ -427,7 +427,7 @@ exports['should match regexp param'] = function (test) {
 exports['should redirect'] = function (test) {
 
   resetAddresbar();
-  addressbarStub.value = baseUrl + 'missing';
+  addressbarStub.value = url + 'missing';
   addressbarStub.pathname = '/missing';
 
   var controller = createController();
