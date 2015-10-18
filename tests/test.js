@@ -1,18 +1,17 @@
 // MOCKING
-global.location = {
+global.window = {};
+global.window.location = {
   href: '/'
-};
-global.window = {
-  history: {
-    location: global.location
-  }
 };
 global.addEventListener = function () {};
 global.document = {};
 
+var baseUrl = 'http://localhost:3000/';
 var proxyquire = require('proxyquire');
 var addressbarStub = {
-  value: '/',
+  value: baseUrl,
+  pathname: '/',
+  origin: 'http://localhost:3000',
   set: function () {
 
   },
@@ -23,7 +22,6 @@ var addressbarStub = {
 proxyquire('./../index.js', { 'addressbar': addressbarStub });
 
 // SETUP
-global.location.origin = '';
 var Controller = require('cerebral');
 var Model = require('cerebral-baobab');
 var Router = require('./../index.js');
@@ -32,10 +30,17 @@ function createController() {
   return Controller(Model({}));
 }
 
+function resetAddresbar() {
+  addressbarStub.value = baseUrl;
+  addressbarStub.pathname = '/';
+  addressbarStub.origin = 'http://localhost:3000';
+}
+
 // TESTS
+
 exports['should match route with signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -52,9 +57,10 @@ exports['should match route with signal'] = function (test) {
   test.done();
 };
 
+
 exports['should run signal synchronously'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -80,7 +86,7 @@ exports['should run signal synchronously'] = function (test) {
 
 exports['should run nested signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test.test1.test2', [
@@ -99,7 +105,8 @@ exports['should run nested signal'] = function (test) {
 
 exports['should match and pass route, params and query to input'] = function (test) {
 
-  global.location.href = '/test?foo=bar&bar=baz';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + 'test?foo=bar&bar=baz';
 
   var controller = createController();
   controller.signal('test', [
@@ -126,7 +133,7 @@ exports['should match and pass route, params and query to input'] = function (te
 
 exports['should throw on missing signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
 
@@ -141,7 +148,7 @@ exports['should throw on missing signal'] = function (test) {
 
 exports['should throw on duplicate signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -161,7 +168,7 @@ exports['should throw on duplicate signal'] = function (test) {
 
 exports['should throw if missing param manually running a bound signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -183,7 +190,7 @@ exports['should throw if missing param manually running a bound signal'] = funct
 
 exports['should throw if resulted url didn\'t matches a route'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -205,7 +212,7 @@ exports['should throw if resulted url didn\'t matches a route'] = function (test
 
 exports['should NOT throw if passing param manually to a bound signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -229,8 +236,9 @@ exports['should NOT throw if passing param manually to a bound signal'] = functi
 
 exports['should match `*` route and set correct url'] = function (test) {
 
-  global.location.href = '/test';
-  global.location.pathname = '/test';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + 'test';
+  addressbarStub.pathname = '/test';
 
   var controller = createController();
   controller.signal('test', [
@@ -249,8 +257,9 @@ exports['should match `*` route and set correct url'] = function (test) {
 
 exports['should match `/*` route and set correct url'] = function (test) {
 
-  global.location.href = '/test';
-  global.location.pathname = '/test';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + 'test';
+  addressbarStub.pathname = '/test';
 
   var controller = createController();
   controller.signal('test', [
@@ -264,14 +273,14 @@ exports['should match `/*` route and set correct url'] = function (test) {
   }).trigger();
 
   test.expect(1);
-  global.location.pathname = '';
   test.done();
 };
 
-
 exports['should match and set correct url with onlyHash option'] = function (test) {
 
-  global.location.href = '/#/test';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + '#/test';
+  addressbarStub.hash = '#/test';
 
   var controller = createController();
   controller.signal('test', [
@@ -292,7 +301,9 @@ exports['should match and set correct url with onlyHash option'] = function (tes
 
 exports['should match and set correct url with baseUrl option'] = function (test) {
 
-  global.location.href = '/base/test';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + 'base/test';
+  addressbarStub.pathname = '/base/test';
 
   var controller = createController();
   controller.signal('test', [
@@ -314,7 +325,7 @@ exports['should match and set correct url with baseUrl option'] = function (test
 
 exports['should set url into store'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -333,7 +344,7 @@ exports['should set url into store'] = function (test) {
 
 exports['should set url into store at custom path'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -354,7 +365,7 @@ exports['should set url into store at custom path'] = function (test) {
 
 exports['should preserve sync method for wrapped signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -373,7 +384,7 @@ exports['should preserve sync method for wrapped signal'] = function (test) {
 
 exports['should expose `getUrl` method for wrapped signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
   controller.signal('test', [
@@ -394,7 +405,9 @@ exports['should expose `getUrl` method for wrapped signal'] = function (test) {
 
 exports['should match regexp param'] = function (test) {
 
-  global.location.href = '/test-test-01';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + 'test-test-01';
+  addressbarStub.pathname = '/test-test-01';
 
   var controller = createController();
   controller.signal('test', [
@@ -413,7 +426,9 @@ exports['should match regexp param'] = function (test) {
 
 exports['should redirect'] = function (test) {
 
-  global.location.href = '/missing';
+  resetAddresbar();
+  addressbarStub.value = baseUrl + 'missing';
+  addressbarStub.pathname = '/missing';
 
   var controller = createController();
   controller.signal('test', [

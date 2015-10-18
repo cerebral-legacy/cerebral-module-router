@@ -2,13 +2,6 @@ var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
 var pathToRegexp = require('path-to-regexp');
 
-// Check if IE history polyfill is added
-var location = window.history.location || window.location;
-
-if (!location.origin) {
-  location.origin = location.protocol + "//" + location.hostname + (location.port ? ':' + location.port: '');
-}
-
 var wrappedRoutes = null;
 
 function router (controller, routes, options) {
@@ -18,7 +11,7 @@ function router (controller, routes, options) {
 
   if (!options.baseUrl && options.onlyHash) {
     // autodetect baseUrl
-    options.baseUrl = location.pathname.replace(/\/$/, "");
+    options.baseUrl = addressbar.pathname.replace(/\/$/, "");
   }
   options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '/#' : '');
 
@@ -34,7 +27,7 @@ function router (controller, routes, options) {
   // Create url based on direct signal input
   function getUrl (route, input) {
     if (route === '*') {
-      return options.onlyHash? location.hash.splice(1) : location.pathname;
+      return options.onlyHash? addressbar.hash.splice(1) : addressbar.pathname;
       console.warn('Cerebral router - `*` catch all route definition is deprecated. Use `/*` to define catch all route instead');
     } else {
       return pathToRegexp.compile(route)(input);
@@ -106,8 +99,8 @@ function router (controller, routes, options) {
 
   function stripUrl (url){
     // return stripped url only if it should be routed
-    if (url.indexOf(location.origin + router.options.baseUrl) === 0) {
-      return url.replace(location.origin + router.options.baseUrl, '');
+    if (url.indexOf(addressbar.origin + router.options.baseUrl) === 0) {
+      return url.replace(addressbar.origin + router.options.baseUrl, '');
     }
   }
 
@@ -133,7 +126,7 @@ function router (controller, routes, options) {
       controller.store.rememberInitial(controller.store.getSignals().length - 1);
     }
 
-    var url = stripUrl(location.href);
+    var url = stripUrl(addressbar.value);
     if (url) urlMapper(url, wrappedRoutes);
 
   };
