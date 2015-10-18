@@ -27,7 +27,7 @@ function router (controller, routes, options) {
   // Create url based on direct signal input
   function getUrl (route, input) {
     if (route === '*') {
-      return options.onlyHash? addressbar.hash.splice(1) : addressbar.pathname;
+      return options.onlyHash ? addressbar.hash.splice(1) : addressbar.pathname;
       console.warn('Cerebral router - `*` catch all route definition is deprecated. Use `/*` to define catch all route instead');
     } else {
       return pathToRegexp.compile(route)(input);
