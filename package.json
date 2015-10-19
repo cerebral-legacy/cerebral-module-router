@@ -1,10 +1,11 @@
 {
   "name": "cerebral-router",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
-    "test": "nodeunit tests"
+    "test": "nodeunit tests",
+    "coveralls": "istanbul cover nodeunit tests && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -22,14 +23,19 @@
   },
   "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
   "dependencies": {
-    "addressbar": "^0.2.0",
-    "url-mapper": "^0.3.0"
+    "addressbar": "^0.4.2",
+    "url-mapper": "^0.3.2"
+  },
+  "peerDependencies": {
+    "path-to-regexp": "^1.2.1"
   },
   "devDependencies": {
     "baobab": "^2.0.0",
-    "cerebral": "^0.19.4",
-    "cerebral-baobab": "^0.2.5",
+    "cerebral": "^0.20.11",
+    "cerebral-baobab": "^0.3.1",
+    "coveralls": "^2.11.4",
+    "istanbul": "^0.4.0",
     "nodeunit": "^0.9.1",
-    "proxyquire": "^1.7.2"
+    "proxyquire": "^1.7.3"
   }
 }

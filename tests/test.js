@@ -1,18 +1,17 @@
 // MOCKING
-global.location = {
+global.window = {};
+global.window.location = {
   href: '/'
-};
-global.window = {
-  history: {
-    location: global.location
-  }
 };
 global.addEventListener = function () {};
 global.document = {};
 
+var url = 'http://localhost:3000/';
 var proxyquire = require('proxyquire');
 var addressbarStub = {
-  value: '/',
+  value: url,
+  pathname: '/',
+  origin: 'http://localhost:3000',
   set: function () {
 
   },
@@ -31,15 +30,24 @@ function createController() {
   return Controller(Model({}));
 }
 
+function resetAddresbar() {
+  addressbarStub.value = url;
+  addressbarStub.pathname = '/';
+  addressbarStub.origin = 'http://localhost:3000';
+}
+
 // TESTS
+
 exports['should match route with signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function () {
-    test.ok(true);
-  });
+  controller.signal('test', [
+    function () {
+      test.ok(true);
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -49,15 +57,18 @@ exports['should match route with signal'] = function (test) {
   test.done();
 };
 
+
 exports['should run signal synchronously'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function () {
-    test.ok(true);
-  });
-  
+  controller.signal('test', [
+    function () {
+      test.ok(true);
+    }
+  ]);
+
   // async run before wrapping
   controller.signals.test();
 
@@ -75,12 +86,14 @@ exports['should run signal synchronously'] = function (test) {
 
 exports['should run nested signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test.test1.test2', function () {
-    test.ok(true);
-  });
+  controller.signal('test.test1.test2', [
+    function () {
+      test.ok(true);
+    }
+  ]);
 
   Router(controller, {
     '/': 'test.test1.test2'
@@ -92,20 +105,23 @@ exports['should run nested signal'] = function (test) {
 
 exports['should match and pass route, params and query to input'] = function (test) {
 
-  global.location.href = '/test?foo=bar&bar=baz';
+  resetAddresbar();
+  addressbarStub.value = url + 'test?foo=bar&bar=baz';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.deepEqual(input, {
-      route: {
-        url: '/test',
-        path: '/test',
-        params: { param: 'test' },
-        query: { foo: "bar", bar: "baz" }
-      },
-      param: 'test'
-    });
-  });
+  controller.signal('test', [
+    function (input) {
+      test.deepEqual(input, {
+        route: {
+          url: '/test?foo=bar&bar=baz',
+          path: '/test',
+          params: { param: 'test' },
+          query: { foo: "bar", bar: "baz" }
+        },
+        param: 'test'
+      });
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -117,7 +133,7 @@ exports['should match and pass route, params and query to input'] = function (te
 
 exports['should throw on missing signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
 
@@ -132,9 +148,13 @@ exports['should throw on missing signal'] = function (test) {
 
 exports['should throw on duplicate signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   test.throws(function () {
     Router(controller, {
@@ -148,11 +168,13 @@ exports['should throw on duplicate signal'] = function (test) {
 
 exports['should throw if missing param manually running a bound signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -168,11 +190,13 @@ exports['should throw if missing param manually running a bound signal'] = funct
 
 exports['should throw if resulted url didn\'t matches a route'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function (input) {
-  });
+  controller.signal('test', [
+    function (input) {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -188,11 +212,13 @@ exports['should throw if resulted url didn\'t matches a route'] = function (test
 
 exports['should NOT throw if passing param manually to a bound signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function (input) {
-  });
+  controller.signal('test', [
+    function (input) {
+    }
+  ]);
 
   Router(controller, {
     '/:param': 'test'
@@ -210,13 +236,16 @@ exports['should NOT throw if passing param manually to a bound signal'] = functi
 
 exports['should match `*` route and set correct url'] = function (test) {
 
-  global.location.href = '/test';
-  global.location.pathname = '/test';
+  resetAddresbar();
+  addressbarStub.value = url + 'test';
+  addressbarStub.pathname = '/test';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.equal(input.route.url, '/test');
-  });
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
 
   Router(controller, {
     '*': 'test'
@@ -226,14 +255,39 @@ exports['should match `*` route and set correct url'] = function (test) {
   test.done();
 };
 
-exports['should match and set correct url with onlyHash option'] = function (test) {
+exports['should match `/*` route and set correct url'] = function (test) {
 
-  global.location.href = '/test';
+  resetAddresbar();
+  addressbarStub.value = url + 'test';
+  addressbarStub.pathname = '/test';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.equal(input.route.url, '/#/test');
-  });
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
+
+  Router(controller, {
+    '/*': 'test'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
+};
+
+exports['should match and set correct url with onlyHash option'] = function (test) {
+
+  resetAddresbar();
+  addressbarStub.value = url + '#/test';
+  addressbarStub.hash = '#/test';
+
+  var controller = createController();
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
 
   Router(controller, {
     '/test': 'test'
@@ -247,12 +301,16 @@ exports['should match and set correct url with onlyHash option'] = function (tes
 
 exports['should match and set correct url with baseUrl option'] = function (test) {
 
-  global.location.href = '/base/test';
+  resetAddresbar();
+  addressbarStub.value = url + 'base/test';
+  addressbarStub.pathname = '/base/test';
 
   var controller = createController();
-  controller.signal('test', function (input) {
-    test.equal(input.route.url, '/test');
-  });
+  controller.signal('test', [
+    function (input) {
+      test.equal(input.route.url, '/test');
+    }
+  ]);
 
   Router(controller, {
     '/test': 'test'
@@ -267,11 +325,13 @@ exports['should match and set correct url with baseUrl option'] = function (test
 
 exports['should set url into store'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -284,11 +344,13 @@ exports['should set url into store'] = function (test) {
 
 exports['should set url into store at custom path'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -303,11 +365,13 @@ exports['should set url into store at custom path'] = function (test) {
 
 exports['should preserve sync method for wrapped signal'] = function (test) {
 
-  global.location.href = '/';
+  resetAddresbar();
 
   var controller = createController();
-  controller.signal('test', function () {
-  });
+  controller.signal('test', [
+    function () {
+    }
+  ]);
 
   Router(controller, {
     '/': 'test'
@@ -316,4 +380,71 @@ exports['should preserve sync method for wrapped signal'] = function (test) {
   test.equals(typeof controller.signals.test.sync, 'function');
   test.done();
 
+};
+
+exports['should expose `getUrl` method for wrapped signal'] = function (test) {
+
+  resetAddresbar();
+
+  var controller = createController();
+  controller.signal('test', [
+    function () {
+    }
+  ]);
+
+  Router(controller, {
+    '/:param': 'test'
+  }, {
+    baseUrl: '/test'
+  });
+
+  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test/test');
+  test.done();
+
+};
+
+exports['should match regexp param'] = function (test) {
+
+  resetAddresbar();
+  addressbarStub.value = url + 'test-test-01';
+  addressbarStub.pathname = '/test-test-01';
+
+  var controller = createController();
+  controller.signal('test', [
+    function (input) {
+      test.deepEqual(input.route.params, { param: 'test', '0': '-01' });
+    }
+  ]);
+
+  Router(controller, {
+    '/:param(\\w+)-test(.*)': 'test'
+  }).trigger();
+
+  test.done();
+
+};
+
+exports['should redirect'] = function (test) {
+
+  resetAddresbar();
+  addressbarStub.value = url + 'missing';
+  addressbarStub.pathname = '/missing';
+
+  var controller = createController();
+  controller.signal('test', [
+    function (input) {
+      test.ok(true);
+    }
+  ]);
+  controller.signal('missing', [
+    Router.redirect('/existing')
+  ]);
+
+  Router(controller, {
+    '/existing': 'test',
+    '/*': 'missing'
+  }).trigger();
+
+  test.expect(1);
+  test.done();
 };
