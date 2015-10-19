@@ -4,7 +4,8 @@
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
-    "test": "nodeunit tests"
+    "test": "nodeunit tests",
+    "coveralls": "istanbul cover nodeunit tests && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,8 @@
     "baobab": "^2.0.0",
     "cerebral": "^0.20.11",
     "cerebral-baobab": "^0.3.1",
+    "coveralls": "^2.11.4",
+    "istanbul": "^0.4.0",
     "nodeunit": "^0.9.1",
     "proxyquire": "^1.7.3"
   }
