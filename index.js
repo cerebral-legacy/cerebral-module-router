@@ -11,9 +11,9 @@ function router (controller, routes, options) {
 
   if (!options.baseUrl && options.onlyHash) {
     // autodetect baseUrl
-    options.baseUrl = addressbar.pathname.replace(/\/$/, "");
+    options.baseUrl = addressbar.pathname;
   }
-  options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '/#' : '');
+  options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '#' : '');
 
   router.options = options;
 
