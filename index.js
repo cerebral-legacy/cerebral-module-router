@@ -104,7 +104,7 @@ function router (controller, routes, options) {
     }
   }
 
-  addressbar.on('change', function (event) {
+  function onAddressbarChange(event) {
 
     if (controller.store.isRemembering()) {
       return;
@@ -116,7 +116,14 @@ function router (controller, routes, options) {
       urlMapper(url, wrappedRoutes);
     }
 
-  });
+  }
+
+  function onControllerChange() {
+
+    var url = controller.get(urlStorePath) || '/';
+    addressbar.value = options.baseUrl + url;
+
+  }
 
   router.trigger = function () {
 
@@ -136,12 +143,13 @@ function router (controller, routes, options) {
     router.trigger();
   };
 
-  controller.on('change', function () {
+  router.detach = function(){
+    addressbar.removeListener('change', onAddressbarChange);
+    controller.removeListener('change', onControllerChange);
+  };
 
-    var url = controller.get(urlStorePath) || '/';
-    addressbar.value = options.baseUrl + url;
-
-  });
+  addressbar.on('change', onAddressbarChange);
+  controller.on('change', onControllerChange);
 
   return router;
 
