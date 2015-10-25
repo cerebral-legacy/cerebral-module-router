@@ -1,450 +1,410 @@
 // MOCKING
-global.window = {};
-global.window.location = {
-  href: '/'
+global.window = {
+  location: {
+    origin: 'http://localhost:3000',
+    href: 'http://localhost:3000/initial'
+  }
+};
+global.history = {
+  pushState: function(_, _, value) {
+    window.location.href = window.location.origin + value;
+  },
+  replaceState: function(_, _, value) {
+    window.location.href = window.location.origin + value;
+  }
 };
 global.addEventListener = function () {};
 global.document = {};
 
-var url = 'http://localhost:3000/';
-var proxyquire = require('proxyquire');
-var addressbarStub = {
-  value: url,
-  pathname: '/',
-  origin: 'http://localhost:3000',
-  set: function () {
-
-  },
-  on: function () {
-
-  }
-};
-proxyquire('./../index.js', { 'addressbar': addressbarStub });
-
 // SETUP
 var Controller = require('cerebral');
 var Model = require('cerebral-baobab');
+var addressbar = require('addressbar');
 var Router = require('./../index.js');
 
-function createController() {
-  return Controller(Model({}));
+function triggerTestFactory(matchRoute, url, shouldMatch) {
+  return function(test){
+    // define signals for each route
+    Object.keys(this.routes).forEach(function(route){
+      this.controller.signal(this.routes[route], [
+        function checkAction() {
+          test.ok(shouldMatch?
+            (matchRoute === route) :
+            (matchRoute !== route)
+          );
+        }
+      ]);
+    }, this);
+
+    this.router = Router(
+      this.controller,
+      this.routes,
+      this.routerOptions
+    );
+
+    addressbar.value = url;
+    this.router.trigger();
+
+    test.done();
+  }
 }
 
-function resetAddresbar() {
-  addressbarStub.value = url;
-  addressbarStub.pathname = '/';
-  addressbarStub.origin = 'http://localhost:3000';
+function eventTestFactory(matchRoute, url, shouldMatch) {
+  return function(test){
+    // define signals for each route
+    Object.keys(this.routes).forEach(function(route){
+      this.controller.signal(this.routes[route], [
+        function checkAction() {
+          test.ok(shouldMatch?
+            (matchRoute === route) :
+            (matchRoute !== route)
+          );
+        }
+      ]);
+    }, this);
+
+    this.router = Router(
+      this.controller,
+      this.routes,
+      this.routerOptions
+    );
+
+    addressbar.emit('change', {
+      preventDefault: function() {},
+      target: { value: addressbar.origin + url }
+    });
+
+    test.done();
+  }
+}
+
+function matchRouteTestFactory(matchRoute, shouldMatch, shouldMiss) {
+  var tests = shouldMatch.reduce(function(tests, url){
+    tests['should match ' + url + ' url by trigger call'] = triggerTestFactory(matchRoute, url, true);
+    tests['should match ' + url + ' url by addressbar event'] = eventTestFactory(matchRoute, url, true);
+
+    return tests;
+  }, {});
+
+  tests = shouldMiss.reduce(function(tests, url){
+    tests['should miss ' + url + ' url by trigger call'] = triggerTestFactory(matchRoute, url, false);
+    tests['should miss ' + url + ' url by addressbar event'] = eventTestFactory(matchRoute, url, false);
+
+    return tests;
+  }, tests);
+
+  return tests;
 }
 
 // TESTS
 
-exports['should match route with signal'] = function (test) {
+module.exports = {
+  setUp: function(cb){
+    this.controller = Controller(Model({}));
+    addressbar.value = '/';
 
-  resetAddresbar();
+    cb();
+  },
 
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-      test.ok(true);
-    }
-  ]);
+  tearDown: function(cb) {
+    // test must expose router to this.router
+    this.router && this.router.detach();
 
-  Router(controller, {
-    '/': 'test'
-  }).trigger();
+    cb();
+  },
 
-  test.expect(1);
-  test.done();
-};
+  'should run signal synchronously': function(test) {
+    this.controller.signal('test', [
+      function checkAction() {
+        test.ok(true);
+      }
+    ]);
 
+    // async run before wrapping
+    this.controller.signals.test();
 
-exports['should run signal synchronously'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-      test.ok(true);
-    }
-  ]);
-
-  // async run before wrapping
-  controller.signals.test();
-
-  // sync run on trigger
-  Router(controller, {
-    '/': 'test'
-  }).trigger();
-
-  // sync run after wrapping
-  controller.signals.test();
-
-  test.expect(2);
-  test.done();
-};
-
-exports['should run nested signal'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test.test1.test2', [
-    function () {
-      test.ok(true);
-    }
-  ]);
-
-  Router(controller, {
-    '/': 'test.test1.test2'
-  }).trigger();
-
-  test.expect(1);
-  test.done();
-};
-
-exports['should match and pass route, params and query to input'] = function (test) {
-
-  resetAddresbar();
-  addressbarStub.value = url + 'test?foo=bar&bar=baz';
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.deepEqual(input, {
-        route: {
-          url: '/test?foo=bar&bar=baz',
-          path: '/test',
-          params: { param: 'test' },
-          query: { foo: "bar", bar: "baz" }
-        },
-        param: 'test'
-      });
-    }
-  ]);
-
-  Router(controller, {
-    '/:param': 'test'
-  }).trigger();
-
-  test.expect(1);
-  test.done();
-};
-
-exports['should throw on missing signal'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-
-  test.throws(function () {
-    Router(controller, {
+    // sync run on trigger
+    this.router = Router(this.controller, {
       '/': 'test'
     });
-  });
+    this.router.trigger();
 
-  test.done();
-};
+    // sync run after wrapping
+    this.controller.signals.test();
 
-exports['should throw on duplicate signal'] = function (test) {
+    test.expect(2);
+    test.done();
+  },
 
-  resetAddresbar();
+  'should run nested signal': function(test) {
+    this.controller.signal('test.test1.test2', [
+      function checkAction() {
+        test.ok(true);
+      }
+    ]);
 
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-    }
-  ]);
-
-  test.throws(function () {
-    Router(controller, {
-      '/': 'test',
-      '/:test': 'test'
+    this.router = Router(this.controller, {
+      '/': 'test.test1.test2'
     });
-  });
+    this.router.trigger();
 
-  test.done();
-};
+    test.expect(1);
+    test.done();
+  },
 
-exports['should throw if missing param manually running a bound signal'] = function (test) {
+  'should match and pass route, params and query to input': function(test) {
+    addressbar.value ='/test?foo=bar&bar=baz';
+      this.controller.signal('test', [
+        function checkAction(input) {
+          test.deepEqual(input, {
+            route: {
+              url: '/test?foo=bar&bar=baz',
+              path: '/test',
+              params: { param: 'test' },
+              query: { foo: "bar", bar: "baz" }
+            },
+            param: 'test'
+          });
+        }
+      ]);
 
-  resetAddresbar();
+      this.router = Router(this.controller, {
+        '/:param': 'test'
+      });
+      this.router.trigger();
 
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-    }
-  ]);
+      test.expect(1);
+      test.done();
+  },
 
-  Router(controller, {
-    '/:param': 'test'
-  });
-
-  test.throws(function () {
-    controller.signals.test();
-  });
-
-  test.done();
-
-};
-
-exports['should throw if resulted url didn\'t matches a route'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-    }
-  ]);
-
-  Router(controller, {
-    '/:param': 'test'
-  });
-
-  test.throws(function () {
-    controller.signals.test({ param: '' });
-  });
-
-  test.done();
-
-};
-
-exports['should NOT throw if passing param manually to a bound signal'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-    }
-  ]);
-
-  Router(controller, {
-    '/:param': 'test'
-  });
-
-  test.doesNotThrow(function () {
-    controller.signals.test({
-      param: 'test2'
+  'should throw on missing signal': function(test) {
+    test.throws(function () {
+      Router(this.controller, {
+        '/': 'test'
+      });
     });
-  });
 
-  test.done();
+    test.done();
+  },
 
-};
+  'should throw on duplicate signal': function(test) {
+    this.controller.signal('test', [ function noop() {} ]);
 
-exports['should match `*` route and set correct url'] = function (test) {
+    test.throws(function () {
+      Router(this.controller, {
+        '/': 'test',
+        '/:test': 'test'
+      });
+    });
 
-  resetAddresbar();
-  addressbarStub.value = url + 'test';
-  addressbarStub.pathname = '/test';
+    test.done();
+  },
 
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.equal(input.route.url, '/test');
+  matching: {
+    setUp: function(cb) {
+      this.routes = {
+        '/': 'root',
+        '/test': 'test',
+        '/test/test': 'testTest',
+        '/:param': 'param',
+        '/:param/:param2': 'param2',
+        '/:regexp(\\w+)-test(-.*)': 'regexp',
+        '/*': 'catchAll'
+      };
+
+      cb();
+    },
+
+    'full url': {
+      setUp: function(cb) {
+        this.routerOptions = {};
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/',
+          '/?query',
+          // '/#hash',
+          // '/#hash?client-query',
+          '/?server-query#hash?client-query'
+        ],
+        [
+          '/path',
+          '/path/#'
+        ]
+      ),
+
+      '"/test" route': matchRouteTestFactory(
+        '/test',
+        [
+          '/test',
+          '/test?query',
+          // '/test#hash',
+          // '/test#hash?client-query',
+          '/test?server-query#hash?client-query'
+        ],
+        [
+          '/test/path',
+          '/test/path/#'
+        ]
+      ),
+
+      '"/test/test" route': matchRouteTestFactory(
+        '/test/test',
+        [
+          '/test/test',
+          '/test/test?query',
+          // '/test/test#hash',
+          // '/test/test#hash?client-query',
+          '/test/test?server-query#hash?client-query'
+        ],
+        [
+          '/test/test/path',
+          '/test/test/path/#'
+        ]
+      ),
+
+      '"/:param" route': matchRouteTestFactory(
+        '/:param',
+        [
+          '/param',
+          '/param?query',
+          // '/param#hash',
+          // '/param#hash?client-query',
+          '/param?server-query#hash?client-query'
+        ],
+        [
+          '/param/path',
+          '/param/path/#'
+        ]
+      ),
+
+      '"/:param/:param2" route': matchRouteTestFactory(
+        '/:param/:param2',
+        [
+          '/param/param2',
+          '/param/param2?query',
+          // '/param/param2#hash',
+          // '/param/param2#hash?client-query',
+          '/param/param2?server-query#hash?client-query'
+        ],
+        [
+          '/param/param2/path',
+          '/param/param2/path/#'
+        ]
+      ),
+
+      '"/*" route': matchRouteTestFactory(
+        '/*',
+        [
+          '/test/test/test'
+        ],
+        []
+      )
+    },
+
+    'with baseUrl option': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          baseUrl: '/base'
+        };
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/base/',
+          '/base/?query',
+          // '/base/#hash',
+          // '/base/#hash?client-query',
+          '/base/?server-query#hash?client-query'
+        ],
+        [
+          '/',
+          '/base/foo',
+          '/#/',
+          '/#/base'
+        ]
+      )
+
+    },
+
+    'with onlyHash option': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          onlyHash: true
+        };
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/#/',
+          '/#/?client-query'
+        ],
+        [
+          '/',
+          '/#/path'
+        ]
+      )
+
+    },
+
+    'with onlyHash option and baseUrl': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          onlyHash: true,
+          baseUrl: '/base'
+        };
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/base#/',
+          '/base#/?client-query'
+        ],
+        [
+          '/',
+          '/path',
+          '/base/',
+          '/base/#/'
+        ]
+      )
+
+    },
+
+    'with onlyHash option and autodetected baseUrl': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          onlyHash: true
+        };
+
+        addressbar.value = '/initial/';
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/initial/#/',
+          '/initial/#/?client-query'
+        ],
+        [
+          '/',
+          '/#/',
+          '/#/initial'
+        ]
+      )
     }
-  ]);
-
-  Router(controller, {
-    '*': 'test'
-  }).trigger();
-
-  test.expect(1);
-  test.done();
-};
-
-exports['should match `/*` route and set correct url'] = function (test) {
-
-  resetAddresbar();
-  addressbarStub.value = url + 'test';
-  addressbarStub.pathname = '/test';
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.equal(input.route.url, '/test');
-    }
-  ]);
-
-  Router(controller, {
-    '/*': 'test'
-  }).trigger();
-
-  test.expect(1);
-  test.done();
-};
-
-exports['should match and set correct url with onlyHash option'] = function (test) {
-
-  resetAddresbar();
-  addressbarStub.value = url + '#/test';
-  addressbarStub.hash = '#/test';
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.equal(input.route.url, '/test');
-    }
-  ]);
-
-  Router(controller, {
-    '/test': 'test'
-  }, {
-    onlyHash: true
-  }).trigger();
-
-  test.expect(1);
-  test.done();
-};
-
-exports['should match and set correct url with baseUrl option'] = function (test) {
-
-  resetAddresbar();
-  addressbarStub.value = url + 'base/test';
-  addressbarStub.pathname = '/base/test';
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.equal(input.route.url, '/test');
-    }
-  ]);
-
-  Router(controller, {
-    '/test': 'test'
-  }, {
-    baseUrl: '/base'
-  }).trigger();
-
-  test.expect(1);
-  test.done();
-
-};
-
-exports['should set url into store'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-    }
-  ]);
-
-  Router(controller, {
-    '/': 'test'
-  }).trigger();
-
-  test.equals(controller.get(['url']), '/');
-  test.done();
-
-};
-
-exports['should set url into store at custom path'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-    }
-  ]);
-
-  Router(controller, {
-    '/': 'test'
-  }, {
-    urlStorePath: ['nested', 'url']
-  }).trigger();
-
-  test.equals(controller.get(['nested', 'url']), '/');
-  test.done();
-
-};
-
-exports['should preserve sync method for wrapped signal'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-    }
-  ]);
-
-  Router(controller, {
-    '/': 'test'
-  });
-
-  test.equals(typeof controller.signals.test.sync, 'function');
-  test.done();
-
-};
-
-exports['should expose `getUrl` method for wrapped signal'] = function (test) {
-
-  resetAddresbar();
-
-  var controller = createController();
-  controller.signal('test', [
-    function () {
-    }
-  ]);
-
-  Router(controller, {
-    '/:param': 'test'
-  }, {
-    baseUrl: '/test'
-  });
-
-  test.equals(controller.signals.test.getUrl({ param: 'test' }), '/test/test');
-  test.done();
-
-};
-
-exports['should match regexp param'] = function (test) {
-
-  resetAddresbar();
-  addressbarStub.value = url + 'test-test-01';
-  addressbarStub.pathname = '/test-test-01';
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.deepEqual(input.route.params, { param: 'test', '0': '-01' });
-    }
-  ]);
-
-  Router(controller, {
-    '/:param(\\w+)-test(.*)': 'test'
-  }).trigger();
-
-  test.done();
-
-};
-
-exports['should redirect'] = function (test) {
-
-  resetAddresbar();
-  addressbarStub.value = url + 'missing';
-  addressbarStub.pathname = '/missing';
-
-  var controller = createController();
-  controller.signal('test', [
-    function (input) {
-      test.ok(true);
-    }
-  ]);
-  controller.signal('missing', [
-    Router.redirect('/existing')
-  ]);
-
-  Router(controller, {
-    '/existing': 'test',
-    '/*': 'missing'
-  }).trigger();
-
-  test.expect(1);
-  test.done();
+  }
 };
