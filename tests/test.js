@@ -22,83 +22,47 @@ var Model = require('cerebral-baobab');
 var addressbar = require('addressbar');
 var Router = require('./../index.js');
 
-function triggerTestFactory(matchRoute, url, shouldMatch) {
-  return function(test){
-    // define signals for each route
-    Object.keys(this.routes).forEach(function(route){
-      this.controller.signal(this.routes[route], [
-        function checkAction() {
-          test.ok(shouldMatch?
-            (matchRoute === route) :
-            (matchRoute !== route)
-          );
-        }
-      ]);
-    }, this);
+var createRouteTest = function (options) {
 
-    this.router = Router(
-      this.controller,
-      this.routes,
-      this.routerOptions
-    );
+  var doesMatch = false;
+  var controller = Controller(Model({}));
+  var routerOptions = options.options;
 
-    addressbar.value = url;
-    this.router.trigger();
+  controller.signal('match', [function () {
+    doesMatch = true;
+  }]);
 
-    test.done();
+  var routes = {};
+  routes[options.route] = 'match';
+
+  if (options.initialUrl) {
+    addressbar.value = options.initialUrl;
+  } else {
+    addressbar.value = '/';
   }
-}
 
-function eventTestFactory(matchRoute, url, shouldMatch) {
-  return function(test){
-    // define signals for each route
-    Object.keys(this.routes).forEach(function(route){
-      this.controller.signal(this.routes[route], [
-        function checkAction() {
-          test.ok(shouldMatch?
-            (matchRoute === route) :
-            (matchRoute !== route)
-          );
-        }
-      ]);
-    }, this);
+  var router = Router(controller, routes, options.options || {});
 
-    this.router = Router(
-      this.controller,
-      this.routes,
-      this.routerOptions
-    );
-
-    addressbar.emit('change', {
-      preventDefault: function() {},
-      target: { value: addressbar.origin + url }
-    });
-
-    test.done();
+  return {
+    matchUrl: function (match) {
+      doesMatch = false;
+      addressbar.value = match;
+      router.trigger();
+      return doesMatch;
+    },
+    runSignal: function (payload) {
+      doesMatch = false;
+      controller.signals.match.sync(payload);
+      return doesMatch;
+    }
   }
-}
 
-function matchRouteTestFactory(matchRoute, shouldMatch, shouldMiss) {
-  var tests = shouldMatch.reduce(function(tests, url){
-    tests['should match ' + url + ' url by trigger call'] = triggerTestFactory(matchRoute, url, true);
-    tests['should match ' + url + ' url by addressbar event'] = eventTestFactory(matchRoute, url, true);
-
-    return tests;
-  }, {});
-
-  tests = shouldMiss.reduce(function(tests, url){
-    tests['should miss ' + url + ' url by trigger call'] = triggerTestFactory(matchRoute, url, false);
-    tests['should miss ' + url + ' url by addressbar event'] = eventTestFactory(matchRoute, url, false);
-
-    return tests;
-  }, tests);
-
-  return tests;
-}
+};
 
 // TESTS
 
 module.exports = {
+
   setUp: function(cb){
     this.controller = Controller(Model({}));
     addressbar.value = '/';
@@ -201,210 +165,216 @@ module.exports = {
   },
 
   matching: {
-    setUp: function(cb) {
-      this.routes = {
-        '/': 'root',
-        '/test': 'test',
-        '/test/test': 'testTest',
-        '/:param': 'param',
-        '/:param/:param2': 'param2',
-        '/:regexp(\\w+)-test(-.*)': 'regexp',
-        '/*': 'catchAll'
-      };
-
-      cb();
-    },
 
     'full url': {
-      setUp: function(cb) {
-        this.routerOptions = {};
 
-        cb();
+      '"/" route': function (test) {
+
+        var routeTest = createRouteTest({
+          route: '/'
+        });
+
+        test.equal(routeTest.matchUrl('/'), true);
+        test.equal(routeTest.matchUrl('/?query'), true);
+        test.equal(routeTest.matchUrl('/?server-query#hash?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/path'), false);
+        test.equal(routeTest.matchUrl('/path?query'), false);
+        test.equal(routeTest.matchUrl('/path/#'), false);
+
+        test.done();
+
       },
 
-      '"/" route': matchRouteTestFactory(
-        '/',
-        [
-          '/',
-          '/?query',
-          // '/#hash',
-          // '/#hash?client-query',
-          '/?server-query#hash?client-query'
-        ],
-        [
-          '/path',
-          '/path/#'
-        ]
-      ),
+      '"/test" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/test'
+        });
 
-      '"/test" route': matchRouteTestFactory(
-        '/test',
-        [
-          '/test',
-          '/test?query',
-          // '/test#hash',
-          // '/test#hash?client-query',
-          '/test?server-query#hash?client-query'
-        ],
-        [
-          '/test/path',
-          '/test/path/#'
-        ]
-      ),
+        test.equal(routeTest.matchUrl('/test'), true);
+        test.equal(routeTest.matchUrl('/test?query'), true);
+        test.equal(routeTest.matchUrl('/test?server-query#hash?client-query'), true);
 
-      '"/test/test" route': matchRouteTestFactory(
-        '/test/test',
-        [
-          '/test/test',
-          '/test/test?query',
-          // '/test/test#hash',
-          // '/test/test#hash?client-query',
-          '/test/test?server-query#hash?client-query'
-        ],
-        [
-          '/test/test/path',
-          '/test/test/path/#'
-        ]
-      ),
+        test.equal(routeTest.matchUrl('/test/path'), false);
+        test.equal(routeTest.matchUrl('/test/path/#'), false);
 
-      '"/:param" route': matchRouteTestFactory(
-        '/:param',
-        [
-          '/param',
-          '/param?query',
-          // '/param#hash',
-          // '/param#hash?client-query',
-          '/param?server-query#hash?client-query'
-        ],
-        [
-          '/param/path',
-          '/param/path/#'
-        ]
-      ),
+        test.done();
+      },
 
-      '"/:param/:param2" route': matchRouteTestFactory(
-        '/:param/:param2',
-        [
-          '/param/param2',
-          '/param/param2?query',
-          // '/param/param2#hash',
-          // '/param/param2#hash?client-query',
-          '/param/param2?server-query#hash?client-query'
-        ],
-        [
-          '/param/param2/path',
-          '/param/param2/path/#'
-        ]
-      ),
+      '"/test/test" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/test/test'
+        });
 
-      '"/*" route': matchRouteTestFactory(
-        '/*',
-        [
-          '/test/test/test'
-        ],
-        []
-      )
+        test.equal(routeTest.matchUrl('/test/test'), true);
+        test.equal(routeTest.matchUrl('/test/test?query'), true);
+        test.equal(routeTest.matchUrl('/test/test?server-query#hash?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/test/test/path'), false);
+        test.equal(routeTest.matchUrl('/test/test/path/#'), false);
+
+        test.done();
+      },
+
+      '"/:param" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/:param'
+        });
+
+        test.equal(routeTest.matchUrl('/param'), true);
+        test.equal(routeTest.matchUrl('/param?query'), true);
+        test.equal(routeTest.matchUrl('/param?server-query#hash?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/param/path'), false);
+        test.equal(routeTest.matchUrl('/param/path/#'), false);
+
+        test.ok(routeTest.runSignal({
+          param: 'foo'
+        }));
+        test.throws(function () {
+          routeTest.runSignal({});
+        });
+
+        test.done();
+      },
+
+      '"/:param/:param2" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/:param/:param2'
+        });
+
+        test.equal(routeTest.matchUrl('/param/param2'), true);
+        test.equal(routeTest.matchUrl('/param/param2?query'), true);
+        test.equal(routeTest.matchUrl('/param/param2?server-query#hash?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/param/param2/path'), false);
+        test.equal(routeTest.matchUrl('/param/param2/path/#'), false);
+
+        test.ok(routeTest.runSignal({
+          param: 'foo',
+          param2: 'bar'
+        }));
+        test.throws(function () {
+          routeTest.runSignal({});
+        });
+        test.throws(function () {
+          routeTest.runSignal({
+            param: 'foo'
+          });
+        });
+
+        test.done();
+      },
+
+      '"/*" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/*'
+        });
+
+        test.equal(routeTest.matchUrl('/test/test/test'), true);
+
+        test.done();
+      }
+
     },
 
     'with baseUrl option': {
-      setUp: function(cb) {
-        this.routerOptions = {
-          baseUrl: '/base'
-        };
 
-        cb();
-      },
+      '"/" route': function (test) {
 
-      '"/" route': matchRouteTestFactory(
-        '/',
-        [
-          '/base/',
-          '/base/?query',
-          // '/base/#hash',
-          // '/base/#hash?client-query',
-          '/base/?server-query#hash?client-query'
-        ],
-        [
-          '/',
-          '/base/foo',
-          '/#/',
-          '/#/base'
-        ]
-      )
+        var routeTest = createRouteTest({
+          route: '/',
+          options: {
+            baseUrl: '/base'
+          }
+        });
+
+        test.equal(routeTest.matchUrl('/base/'), true);
+        test.equal(routeTest.matchUrl('/base/?query'), true);
+        test.equal(routeTest.matchUrl('/base/?server-query#hash?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/'), false);
+        test.equal(routeTest.matchUrl('/base/foo'), false);
+        test.equal(routeTest.matchUrl('/#/'), false);
+        test.equal(routeTest.matchUrl('/#/base2'), false);
+
+        test.done();
+
+      }
 
     },
 
     'with onlyHash option': {
-      setUp: function(cb) {
-        this.routerOptions = {
-          onlyHash: true
-        };
 
-        cb();
-      },
+      '"/" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/',
+          options: {
+            onlyHash: true
+          }
+        });
 
-      '"/" route': matchRouteTestFactory(
-        '/',
-        [
-          '/#/',
-          '/#/?client-query'
-        ],
-        [
-          '/',
-          '/#/path'
-        ]
-      )
+        test.equal(routeTest.matchUrl('/#/'), true);
+        test.equal(routeTest.matchUrl('/#/?query'), true);
+        test.equal(routeTest.matchUrl('/#/?server-query#hash?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/'), false);
+        test.equal(routeTest.matchUrl('/#/path'), false);
+
+        test.done();
+
+      }
 
     },
 
     'with onlyHash option and baseUrl': {
-      setUp: function(cb) {
-        this.routerOptions = {
-          onlyHash: true,
-          baseUrl: '/base'
-        };
 
-        cb();
-      },
+      '"/" route': function (test) {
+        var routeTest = createRouteTest({
+          route: '/',
+          options: {
+            onlyHash: true,
+            baseUrl: '/base'
+          }
+        });
 
-      '"/" route': matchRouteTestFactory(
-        '/',
-        [
-          '/base#/',
-          '/base#/?client-query'
-        ],
-        [
-          '/',
-          '/path',
-          '/base/',
-          '/base/#/'
-        ]
-      )
+        test.equal(routeTest.matchUrl('/base#/'), true);
+        test.equal(routeTest.matchUrl('/base#/?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/'), false);
+        test.equal(routeTest.matchUrl('/path'), false);
+        test.equal(routeTest.matchUrl('/base/'), false);
+        test.equal(routeTest.matchUrl('/base/#/'), false);
+
+        test.done();
+      }
 
     },
 
     'with onlyHash option and autodetected baseUrl': {
-      setUp: function(cb) {
-        this.routerOptions = {
-          onlyHash: true
-        };
 
-        addressbar.value = '/initial/';
-        cb();
-      },
+      '"/" route': function (test) {
 
-      '"/" route': matchRouteTestFactory(
-        '/',
-        [
-          '/initial/#/',
-          '/initial/#/?client-query'
-        ],
-        [
-          '/',
-          '/#/',
-          '/#/initial'
-        ]
-      )
+        var routeTest = createRouteTest({
+          route: '/',
+          initialUrl: '/initial/',
+          options: {
+            onlyHash: true
+          }
+        });
+
+        test.equal(routeTest.matchUrl('/initial/#/'), true);
+        test.equal(routeTest.matchUrl('/initial/#/?client-query'), true);
+
+        test.equal(routeTest.matchUrl('/'), false);
+        test.equal(routeTest.matchUrl('/#/'), false);
+        test.equal(routeTest.matchUrl('/#/initial'), false);
+
+        test.done();
+
+      }
+
     }
+
   }
 };

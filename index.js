@@ -56,7 +56,8 @@ function router (controller, routes, options) {
     function wrappedSignal() {
 
       var hasSync = arguments[0] === true;
-      var input = hasSync ? arguments[1] : arguments[0] || {};
+      var input = hasSync ? arguments[1] || {} : arguments[0] || {};
+
       if (!input.route) {
         input.route = {
           url: getUrl(route, input)
