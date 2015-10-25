@@ -46,14 +46,14 @@ var createRouteTest = function (options) {
   return {
     matchUrl: function (match) {
       doesMatch = false;
-      addressbar.value = match;
-      router.trigger();
+      addressbar.emit('change', {
+        preventDefault: function() {},
+        target: {value: addressbar.origin + match}
+      });
       return doesMatch;
     },
     runSignal: function (payload) {
-      doesMatch = false;
       controller.signals.match.sync(payload);
-      return doesMatch;
     }
   }
 
@@ -228,9 +228,11 @@ module.exports = {
         test.equal(routeTest.matchUrl('/param/path'), false);
         test.equal(routeTest.matchUrl('/param/path/#'), false);
 
-        test.ok(routeTest.runSignal({
-          param: 'foo'
-        }));
+        test.doesNotThrow(function () {
+          routeTest.runSignal({
+            param: 'foo'
+          });
+        });
         test.throws(function () {
           routeTest.runSignal({});
         });
@@ -250,10 +252,12 @@ module.exports = {
         test.equal(routeTest.matchUrl('/param/param2/path'), false);
         test.equal(routeTest.matchUrl('/param/param2/path/#'), false);
 
-        test.ok(routeTest.runSignal({
-          param: 'foo',
-          param2: 'bar'
-        }));
+        test.doesNotThrow(function () {
+          routeTest.runSignal({
+            param: 'foo',
+            param2: 'bar'
+          })
+        });
         test.throws(function () {
           routeTest.runSignal({});
         });
