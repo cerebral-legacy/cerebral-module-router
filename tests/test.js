@@ -101,224 +101,310 @@ function matchRouteTestFactory(matchRoute, shouldMatch, shouldMiss) {
 module.exports = {
   setUp: function(cb){
     this.controller = Controller(Model({}));
-    this.routes = {
-      '/': 'root',
-      '/test': 'test',
-      '/test/test': 'testTest',
-      '/:param': 'param',
-      '/:param/:param2': 'param2',
-      '/:regexp(\\w+)-test(-.*)': 'regexp',
-      '/*': 'catchAll'
-    }
-
     addressbar.value = '/';
 
     cb();
   },
 
   tearDown: function(cb) {
+    // test must expose router to this.router
     this.router && this.router.detach();
 
     cb();
   },
 
-  'full url': {
+  'should run signal synchronously': function(test) {
+    this.controller.signal('test', [
+      function checkAction() {
+        test.ok(true);
+      }
+    ]);
+
+    // async run before wrapping
+    this.controller.signals.test();
+
+    // sync run on trigger
+    this.router = Router(this.controller, {
+      '/': 'test'
+    });
+    this.router.trigger();
+
+    // sync run after wrapping
+    this.controller.signals.test();
+
+    test.expect(2);
+    test.done();
+  },
+
+  'should run nested signal': function(test) {
+    this.controller.signal('test.test1.test2', [
+      function checkAction() {
+        test.ok(true);
+      }
+    ]);
+
+    this.router = Router(this.controller, {
+      '/': 'test.test1.test2'
+    });
+    this.router.trigger();
+
+    test.expect(1);
+    test.done();
+  },
+
+  'should match and pass route, params and query to input': function(test) {
+    addressbar.value ='/test?foo=bar&bar=baz';
+      this.controller.signal('test', [
+        function checkAction(input) {
+          test.deepEqual(input, {
+            route: {
+              url: '/test?foo=bar&bar=baz',
+              path: '/test',
+              params: { param: 'test' },
+              query: { foo: "bar", bar: "baz" }
+            },
+            param: 'test'
+          });
+        }
+      ]);
+
+      this.router = Router(this.controller, {
+        '/:param': 'test'
+      });
+      this.router.trigger();
+
+      test.expect(1);
+      test.done();
+  },
+
+  'should throw on missing signal': function(test) {
+    test.throws(function () {
+      Router(this.controller, {
+        '/': 'test'
+      });
+    });
+
+    test.done();
+  },
+
+  'should throw on duplicate signal': function(test) {
+    this.controller.signal('test', [ function noop() {} ]);
+
+    test.throws(function () {
+      Router(this.controller, {
+        '/': 'test',
+        '/:test': 'test'
+      });
+    });
+
+    test.done();
+  },
+
+  matching: {
     setUp: function(cb) {
-      this.routerOptions = {};
+      this.routes = {
+        '/': 'root',
+        '/test': 'test',
+        '/test/test': 'testTest',
+        '/:param': 'param',
+        '/:param/:param2': 'param2',
+        '/:regexp(\\w+)-test(-.*)': 'regexp',
+        '/*': 'catchAll'
+      };
 
       cb();
     },
 
-    '"/" route': matchRouteTestFactory(
-      '/',
-      [
-        '/',
-        '/?query',
-        // '/#hash',
-        // '/#hash?client-query',
-        '/?server-query#hash?client-query'
-      ],
-      [
-        '/path',
-        '/path/#'
-      ]
-    ),
+    'full url': {
+      setUp: function(cb) {
+        this.routerOptions = {};
 
-    '"/test" route': matchRouteTestFactory(
-      '/test',
-      [
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/',
+          '/?query',
+          // '/#hash',
+          // '/#hash?client-query',
+          '/?server-query#hash?client-query'
+        ],
+        [
+          '/path',
+          '/path/#'
+        ]
+      ),
+
+      '"/test" route': matchRouteTestFactory(
         '/test',
-        '/test?query',
-        // '/test#hash',
-        // '/test#hash?client-query',
-        '/test?server-query#hash?client-query'
-      ],
-      [
-        '/test/path',
-        '/test/path/#'
-      ]
-    ),
+        [
+          '/test',
+          '/test?query',
+          // '/test#hash',
+          // '/test#hash?client-query',
+          '/test?server-query#hash?client-query'
+        ],
+        [
+          '/test/path',
+          '/test/path/#'
+        ]
+      ),
 
-    '"/test/test" route': matchRouteTestFactory(
-      '/test/test',
-      [
+      '"/test/test" route': matchRouteTestFactory(
         '/test/test',
-        '/test/test?query',
-        // '/test/test#hash',
-        // '/test/test#hash?client-query',
-        '/test/test?server-query#hash?client-query'
-      ],
-      [
-        '/test/test/path',
-        '/test/test/path/#'
-      ]
-    ),
+        [
+          '/test/test',
+          '/test/test?query',
+          // '/test/test#hash',
+          // '/test/test#hash?client-query',
+          '/test/test?server-query#hash?client-query'
+        ],
+        [
+          '/test/test/path',
+          '/test/test/path/#'
+        ]
+      ),
 
-    '"/:param" route': matchRouteTestFactory(
-      '/:param',
-      [
-        '/param',
-        '/param?query',
-        // '/param#hash',
-        // '/param#hash?client-query',
-        '/param?server-query#hash?client-query'
-      ],
-      [
-        '/param/path',
-        '/param/path/#'
-      ]
-    ),
+      '"/:param" route': matchRouteTestFactory(
+        '/:param',
+        [
+          '/param',
+          '/param?query',
+          // '/param#hash',
+          // '/param#hash?client-query',
+          '/param?server-query#hash?client-query'
+        ],
+        [
+          '/param/path',
+          '/param/path/#'
+        ]
+      ),
 
-    '"/:param/:param2" route': matchRouteTestFactory(
-      '/:param/:param2',
-      [
-        '/param/param2',
-        '/param/param2?query',
-        // '/param/param2#hash',
-        // '/param/param2#hash?client-query',
-        '/param/param2?server-query#hash?client-query'
-      ],
-      [
-        '/param/param2/path',
-        '/param/param2/path/#'
-      ]
-    ),
+      '"/:param/:param2" route': matchRouteTestFactory(
+        '/:param/:param2',
+        [
+          '/param/param2',
+          '/param/param2?query',
+          // '/param/param2#hash',
+          // '/param/param2#hash?client-query',
+          '/param/param2?server-query#hash?client-query'
+        ],
+        [
+          '/param/param2/path',
+          '/param/param2/path/#'
+        ]
+      ),
 
-    '"/*" route': matchRouteTestFactory(
-      '/*',
-      [
-        '/test/test/test'
-      ],
-      []
-    )
-  },
-
-  'with baseUrl option': {
-    setUp: function(cb) {
-      this.routerOptions = {
-        baseUrl: '/base'
-      };
-
-      cb();
+      '"/*" route': matchRouteTestFactory(
+        '/*',
+        [
+          '/test/test/test'
+        ],
+        []
+      )
     },
 
-    '"/" route': matchRouteTestFactory(
-      '/',
-      [
-        '/base/',
-        '/base/?query',
-        // '/base/#hash',
-        // '/base/#hash?client-query',
-        '/base/?server-query#hash?client-query'
-      ],
-      [
+    'with baseUrl option': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          baseUrl: '/base'
+        };
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
         '/',
-        '/base/foo',
-        '/#/',
-        '/#/base'
-      ]
-    )
+        [
+          '/base/',
+          '/base/?query',
+          // '/base/#hash',
+          // '/base/#hash?client-query',
+          '/base/?server-query#hash?client-query'
+        ],
+        [
+          '/',
+          '/base/foo',
+          '/#/',
+          '/#/base'
+        ]
+      )
 
-  },
-
-  'with onlyHash option': {
-    setUp: function(cb) {
-      this.routerOptions = {
-        onlyHash: true
-      };
-
-      cb();
     },
 
-    '"/" route': matchRouteTestFactory(
-      '/',
-      [
-        '/#/',
-        '/#/?client-query'
-      ],
-      [
+    'with onlyHash option': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          onlyHash: true
+        };
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
         '/',
-        '/#/path'
-      ]
-    )
+        [
+          '/#/',
+          '/#/?client-query'
+        ],
+        [
+          '/',
+          '/#/path'
+        ]
+      )
 
-  },
-
-  'with onlyHash option and baseUrl': {
-    setUp: function(cb) {
-      this.routerOptions = {
-        onlyHash: true,
-        baseUrl: '/base'
-      };
-
-      cb();
     },
 
-    '"/" route': matchRouteTestFactory(
-      '/',
-      [
-        '/base#/',
-        '/base#/?client-query'
-      ],
-      [
+    'with onlyHash option and baseUrl': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          onlyHash: true,
+          baseUrl: '/base'
+        };
+
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
         '/',
-        '/path',
-        '/base/',
-        '/base/#/'
-      ]
-    )
+        [
+          '/base#/',
+          '/base#/?client-query'
+        ],
+        [
+          '/',
+          '/path',
+          '/base/',
+          '/base/#/'
+        ]
+      )
 
-  },
-
-  'with onlyHash option and autodetected baseUrl': {
-    setUp: function(cb) {
-      this.routerOptions = {
-        onlyHash: true
-      };
-
-      addressbar.value = '/initial/';
-      cb();
     },
 
-    '"/" route': matchRouteTestFactory(
-      '/',
-      [
-        '/initial/#/',
-        '/initial/#/?client-query'
-      ],
-      [
-        '/',
-        '/#/',
-        '/#/initial'
-      ]
-    )
+    'with onlyHash option and autodetected baseUrl': {
+      setUp: function(cb) {
+        this.routerOptions = {
+          onlyHash: true
+        };
 
+        addressbar.value = '/initial/';
+        cb();
+      },
+
+      '"/" route': matchRouteTestFactory(
+        '/',
+        [
+          '/initial/#/',
+          '/initial/#/?client-query'
+        ],
+        [
+          '/',
+          '/#/',
+          '/#/initial'
+        ]
+      )
+    }
   }
 };
-
-module.exports['api'] = function(test){
-  test.expect(0);
-  test.ok(true);
-  test.expect(1);
-  test.done();
-}
