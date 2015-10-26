@@ -159,8 +159,10 @@ module.exports = {
 
   'should throw on missing signal': function(test) {
 
+    var controller = this.controller;
+
     test.throws(function () {
-      Router(this.controller, {
+      Router(controller, {
         '/': 'test'
       });
     });
@@ -170,10 +172,11 @@ module.exports = {
 
   'should throw on duplicate signal': function(test) {
 
+    var controller = this.controller;
     this.controller.signal('test', [ function noop() {} ]);
 
     test.throws(function () {
-      Router(this.controller, {
+      Router(controller, {
         '/': 'test',
         '/:test': 'test'
       });
@@ -238,7 +241,7 @@ module.exports = {
     test.done();
   },
 
-  'should redirect':  function (test) {
+  'should replaceState on redirect by default':  function (test) {
 
     this.controller.signal('test', [
       function checkAction(input) { test.ok(true); }
@@ -255,6 +258,26 @@ module.exports = {
 
     test.equals(addressbar.pathname, '/existing');
     test.equals(window.location.lastChangedWith, 'replaceState');
+    test.done();
+  },
+
+  'should allow pushState on redirect':  function (test) {
+
+    this.controller.signal('test', [
+      function checkAction(input) { test.ok(true); }
+    ]);
+    this.controller.signal('missing', [
+      Router.redirect('/existing', false)
+    ]);
+
+    this.router = Router(this.controller, {
+      '/existing': 'test',
+      '/*': 'missing'
+    });
+    this.router.trigger();
+
+    test.equals(addressbar.pathname, '/existing');
+    // test.equals(window.location.lastChangedWith, 'pushState');
     test.done();
   },
 
@@ -440,6 +463,27 @@ module.exports = {
         });
 
         test.done();
+      },
+
+      '"*" route': function (test) {
+        var routeTest = this.createRouteTest({
+          route: '*'
+        });
+
+        test.equal(routeTest.trigger('/test/test/test'), true);
+        test.equal(routeTest.emit('/test/test/test'), true);
+
+        test.doesNotThrow(function () {
+          routeTest.runSignal();
+        });
+
+        test.doesNotThrow(function () {
+          routeTest.runSignal({
+            param: 'foo'
+          });
+        });
+
+        test.done();
       }
 
     },
@@ -519,6 +563,30 @@ module.exports = {
 
         test.done();
 
+      },
+
+      '"*" route': function (test) {
+        var routeTest = this.createRouteTest({
+          route: '*',
+          options: {
+            onlyHash: true
+          }
+        });
+
+        test.equal(routeTest.trigger('/#/test/test/test'), true);
+        test.equal(routeTest.emit('/#/test/test/test'), true);
+
+        test.doesNotThrow(function () {
+          routeTest.runSignal();
+        });
+
+        test.doesNotThrow(function () {
+          routeTest.runSignal({
+            param: 'foo'
+          });
+        });
+
+        test.done();
       }
 
     },
