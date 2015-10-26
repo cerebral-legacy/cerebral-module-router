@@ -72,6 +72,11 @@ module.exports = {
 
     };
 
+    this.warn = console.warn;
+    console.warn = (function(message) {
+      this.warnMessage = message;
+    }).bind(this);
+
     cb();
   },
 
@@ -80,6 +85,8 @@ module.exports = {
     // test must expose router to this.router
     this.router && this.router.detach();
     delete window.location.lastChangedWith;
+
+    console.warn = this.warn;
 
     cb();
   },
@@ -286,6 +293,48 @@ module.exports = {
 
     test.equals(addressbar.pathname, '/existing');
     // test.equals(window.location.lastChangedWith, 'pushState');
+    test.done();
+  },
+
+  'should remember while developing': function(test) {
+
+    this.controller.signal('test', [
+      function checkAction(input) { test.ok(true); }
+    ]);
+
+    this.router = Router(this.controller, {
+      '/test': 'test'
+    });
+
+    this.controller.signals.test();
+    addressbar.value = '/';
+
+    this.router.trigger();
+    test.equals(addressbar.pathname, '/test');
+
+    test.done();
+  },
+
+  'should log out deprecation warnings': function(test) {
+
+    this.controller.signal('test', [
+      function noop() {}
+    ]);
+    this.controller.signal('test2', [
+      function noop() {}
+    ]);
+
+    this.router = Router(this.controller, {
+      '/': 'test',
+      '*': 'test2'
+    });
+
+    test.equals(this.warnMessage.indexOf('deprecate') >= 0, true);
+    delete this.warnMessage;
+
+    this.router.start();
+    test.equals(this.warnMessage.indexOf('deprecate') >= 0, true);
+
     test.done();
   },
 
