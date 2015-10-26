@@ -256,6 +256,25 @@ module.exports = {
     test.done();
   },
 
+  'should not change url for regular signal call': function (test) {
+
+    this.controller.signal('test', [
+      function (input, store) {
+        store.set(['foo'], 'bar');
+      }
+    ]);
+
+    this.createRouteTest({
+      route: '/test',
+      initialUrl: '/initial'
+    });
+
+    this.controller.signals.test.sync();
+
+    test.equals(addressbar.pathname, '/initial');
+    test.done();
+  },
+
   'should replaceState on redirect by default':  function (test) {
 
     this.controller.signal('test', [

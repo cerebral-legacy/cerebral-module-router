@@ -123,8 +123,8 @@ function router (controller, routes, options) {
 
   function onControllerChange() {
 
-    var url = controller.get(urlStorePath) || '/';
-    addressbar.value = options.baseUrl + url;
+    var url = controller.get(urlStorePath);
+    if (url) addressbar.value = options.baseUrl + url;
 
   }
 
