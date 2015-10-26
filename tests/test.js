@@ -342,7 +342,7 @@ module.exports = {
 
     'full url': {
 
-      '"/" route': function (test) {
+      'root route': function (test) {
 
         var routeTest = this.createRouteTest({
           route: '/'
@@ -370,7 +370,7 @@ module.exports = {
 
       },
 
-      '"/test" route': function (test) {
+      'simple route': function (test) {
         var routeTest = this.createRouteTest({
           route: '/test'
         });
@@ -395,14 +395,14 @@ module.exports = {
         test.done();
       },
 
-      '"/test/test" route': function (test) {
+      'deep route': function (test) {
         var routeTest = this.createRouteTest({
-          route: '/test/test'
+          route: '/test/test/test/42'
         });
 
-        test.equal(routeTest.emit('/test/test'), true);
-        test.equal(routeTest.emit('/test/test?query'), true);
-        test.equal(routeTest.emit('/test/test?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/test/test/test/42'), true);
+        test.equal(routeTest.emit('/test/test/test/42?query'), true);
+        test.equal(routeTest.emit('/test/test/test/42?server-query#hash?client-query'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -420,7 +420,7 @@ module.exports = {
         test.done();
       },
 
-      '"/:param" route': function (test) {
+      'params route': function (test) {
         var routeTest = this.createRouteTest({
           route: '/:param'
         });
@@ -444,7 +444,7 @@ module.exports = {
         test.done();
       },
 
-      '"/:param/:param2" route': function (test) {
+      'several params route': function (test) {
         var routeTest = this.createRouteTest({
           route: '/:param/:param2'
         });
@@ -474,7 +474,39 @@ module.exports = {
         test.done();
       },
 
-      '"/*" route': function (test) {
+      'regexp route': function (test) {
+        var routeTest = this.createRouteTest({
+          route: '/:param([\\w+-?]+)-test/:param2(\\d+)'
+        });
+
+        test.equal(routeTest.emit('/param-test/42'), true);
+        test.equal(routeTest.emit('/param-param-test/42'), true);
+        test.equal(routeTest.emit('/param-test/42?client-query'), true);
+        test.equal(routeTest.emit('/param-test/42?server-query#hash?client-query'), true);
+
+        test.doesNotThrow(function () {
+          routeTest.runSignal({
+            param: 'foo',
+            param2: 42
+          })
+        });
+        test.throws(function () {
+          routeTest.runSignal({});
+        });
+        test.throws(function () {
+          routeTest.runSignal({
+            param: 'foo',
+            param2: 'bar'
+          });
+        });
+
+        test.equal(routeTest.emit('/paramtest/42'), false);
+        test.equal(routeTest.emit('/param-test/foo'), false);
+
+        test.done();
+      },
+
+      'catch all route': function (test) {
         var routeTest = this.createRouteTest({
           route: '/*'
         });
@@ -494,7 +526,7 @@ module.exports = {
         test.done();
       },
 
-      '"*" route': function (test) {
+      'deprecated catch all route': function (test) {
         var routeTest = this.createRouteTest({
           route: '*'
         });
@@ -518,7 +550,7 @@ module.exports = {
 
     'with baseUrl option': {
 
-      '"/" route': function (test) {
+      'root route': function (test) {
 
         var routeTest = this.createRouteTest({
           route: '/',
@@ -553,7 +585,7 @@ module.exports = {
 
     'with onlyHash option': {
 
-      '"/" route': function (test) {
+      'root route': function (test) {
         var routeTest = this.createRouteTest({
           route: '/',
           options: {
@@ -581,7 +613,7 @@ module.exports = {
 
       },
 
-      '"*" route': function (test) {
+      'deprecated catch all route': function (test) {
         var routeTest = this.createRouteTest({
           route: '*',
           options: {
@@ -608,7 +640,7 @@ module.exports = {
 
     'with onlyHash option and baseUrl': {
 
-      '"/" route': function (test) {
+      'root route': function (test) {
         var routeTest = this.createRouteTest({
           route: '/',
           options: {
@@ -641,7 +673,7 @@ module.exports = {
 
     'with onlyHash option and autodetected baseUrl': {
 
-      '"/" route': function (test) {
+      'root route': function (test) {
 
         var routeTest = this.createRouteTest({
           route: '/',
@@ -671,7 +703,7 @@ module.exports = {
 
       },
 
-      '"/" route': function (test) {
+      'root route': function (test) {
 
         var routeTest = this.createRouteTest({
           route: '/',
