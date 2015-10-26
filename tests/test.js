@@ -8,9 +8,11 @@ global.window = {
 global.history = {
   pushState: function(_, _, value) {
     window.location.href = window.location.origin + value;
+    window.location.lastChangedWith = 'pushState';
   },
   replaceState: function(_, _, value) {
     window.location.href = window.location.origin + value;
+    window.location.lastChangedWith = 'replaceState';
   }
 };
 global.addEventListener = function () {};
@@ -26,6 +28,7 @@ var Router = require('./../index.js');
 module.exports = {
 
   setUp: function(cb){
+
     var controller = this.controller = Controller(Model({}));
     addressbar.value = '/';
 
@@ -69,7 +72,7 @@ module.exports = {
           return doesMatch;
         },
         runSignal: function (payload) {
-          controller.signals.match.sync(payload);
+          controller.signals.match(payload);
         }
       }
 
@@ -79,13 +82,16 @@ module.exports = {
   },
 
   tearDown: function(cb) {
+
     // test must expose router to this.router
     this.router && this.router.detach();
+    delete window.location.lastChangedWith;
 
     cb();
   },
 
   'should run signal synchronously': function(test) {
+
     this.controller.signal('test', [
       function checkAction() {
         test.ok(true);
@@ -109,6 +115,7 @@ module.exports = {
   },
 
   'should run nested signal': function(test) {
+
     this.controller.signal('test.test1.test2', [
       function checkAction() {
         test.ok(true);
@@ -125,6 +132,7 @@ module.exports = {
   },
 
   'should match and pass route, params and query to input': function(test) {
+
     addressbar.value ='/test?foo=bar&bar=baz';
       this.controller.signal('test', [
         function checkAction(input) {
@@ -150,6 +158,7 @@ module.exports = {
   },
 
   'should throw on missing signal': function(test) {
+
     test.throws(function () {
       Router(this.controller, {
         '/': 'test'
@@ -160,6 +169,7 @@ module.exports = {
   },
 
   'should throw on duplicate signal': function(test) {
+
     this.controller.signal('test', [ function noop() {} ]);
 
     test.throws(function () {
@@ -169,6 +179,82 @@ module.exports = {
       });
     });
 
+    test.done();
+  },
+
+  'should set url into store': function (test) {
+
+    this.controller.signal('test', [ function noop() {} ]);
+
+    this.router = Router(this.controller, {
+      '/': 'test'
+    });
+    this.router.trigger();
+
+    test.equals(this.controller.get(['url']), '/');
+    test.done();
+  },
+
+  'should set url into store at custom path': function (test) {
+
+    this.controller.signal('test', [ function noop() {} ]);
+
+    this.router = Router(this.controller, {
+      '/': 'test'
+    }, {
+      urlStorePath: ['nested', 'path', 'to', 'url']
+    });
+    this.router.trigger();
+
+    test.equals(this.controller.get(['nested', 'path', 'to', 'url']), '/');
+    test.done();
+  },
+
+  'should preserve sync method for wrapped signal': function (test) {
+
+    var controller = this.controller;
+
+    this.createRouteTest({
+      route: '/:param'
+    });
+
+    test.doesNotThrow(function() {
+      controller.signals.match.sync({ param: 'test' })
+    });
+    test.done();
+  },
+
+  'should expose `getUrl` method for wrapped signal': function (test) {
+
+    this.createRouteTest({
+      route: '/:param',
+      options: {
+        baseUrl: '/test',
+        onlyHash: true
+      }
+    });
+
+    test.equals(this.controller.signals.match.getUrl({ param: 'test' }), '/test#/test');
+    test.done();
+  },
+
+  'should redirect':  function (test) {
+
+    this.controller.signal('test', [
+      function checkAction(input) { test.ok(true); }
+    ]);
+    this.controller.signal('missing', [
+      Router.redirect('/existing')
+    ]);
+
+    this.router = Router(this.controller, {
+      '/existing': 'test',
+      '/*': 'missing'
+    });
+    this.router.trigger();
+
+    test.equals(addressbar.pathname, '/existing');
+    test.equals(window.location.lastChangedWith, 'replaceState');
     test.done();
   },
 
