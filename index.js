@@ -162,7 +162,7 @@ router.redirect = function (url, replace) {
 
     addressbar.value = {
       value: options.baseUrl + url,
-      replace: true
+      replace: replace
     };
 
     urlMapper(url, wrappedRoutes);
