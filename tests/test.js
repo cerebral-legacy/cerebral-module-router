@@ -277,15 +277,17 @@ module.exports = {
 
   'should replaceState on redirect by default':  function (test) {
 
-    this.controller.signal('test', [
+    this.controller.signal('existing', [
       function checkAction(input) { test.ok(true); }
     ]);
     this.controller.signal('missing', [
-      Router.redirect('/existing')
+      function checkAction(input, state, output, services) {
+        services.router.redirect('/existing');
+      }
     ]);
 
     this.router = Router(this.controller, {
-      '/existing': 'test',
+      '/existing': 'existing',
       '/*': 'missing'
     });
     this.router.trigger();
@@ -297,15 +299,17 @@ module.exports = {
 
   'should allow pushState on redirect':  function (test) {
 
-    this.controller.signal('test', [
+    this.controller.signal('existing', [
       function checkAction(input) { test.ok(true); }
     ]);
     this.controller.signal('missing', [
-      Router.redirect('/existing', false)
+      function checkAction(input, state, output, services) {
+        services.router.redirect('/existing', {replace: false});
+      }
     ]);
 
     this.router = Router(this.controller, {
-      '/existing': 'test',
+      '/existing': 'existing',
       '/*': 'missing'
     });
     this.router.trigger();

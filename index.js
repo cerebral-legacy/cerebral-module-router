@@ -7,6 +7,7 @@ var wrappedRoutes = null;
 function router (controller, routes, options) {
 
   options = options || {};
+  controller.services.router = router;
 
   if(!routes) {
     throw new Error('Cerebral router - Routes configuration wasn\'t provided.');
@@ -17,8 +18,6 @@ function router (controller, routes, options) {
     options.baseUrl = addressbar.pathname;
   }
   options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '#' : '');
-
-  router.options = options;
 
   var urlStorePath = options.urlStorePath || 'url';
 
@@ -109,7 +108,7 @@ function router (controller, routes, options) {
     }
 
     var url = event.target.value;
-    var base = addressbar.origin + router.options.baseUrl;
+    var base = addressbar.origin + options.baseUrl;
 
     // check if url should be routed and strip off base
     if (url.indexOf(base) === 0) {
@@ -157,27 +156,25 @@ function router (controller, routes, options) {
     controller.removeListener('change', onControllerChange);
   };
 
+  router.redirect = function(url, params) {
+
+    params = params || {};
+    params.replace = (typeof params.replace === "undefined") ? true : params.replace;
+
+    addressbar.value = {
+      value: options.baseUrl + url,
+      replace: params.replace
+    };
+
+    urlMapper(url, wrappedRoutes);
+
+  };
+
   addressbar.on('change', onAddressbarChange);
   controller.on('change', onControllerChange);
 
   return router;
 
 }
-
-router.redirect = function (url, replace) {
-  replace = (typeof replace === "undefined") ? true : replace;
-
-  return function redirect () {
-    var options = router.options;
-
-    addressbar.value = {
-      value: options.baseUrl + url,
-      replace: replace
-    };
-
-    urlMapper(url, wrappedRoutes);
-  };
-
-};
 
 module.exports = router;
