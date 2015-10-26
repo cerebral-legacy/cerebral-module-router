@@ -6,8 +6,11 @@ var wrappedRoutes = null;
 
 function router (controller, routes, options) {
 
-  routes = routes || {};
   options = options || {};
+
+  if(!routes) {
+    throw new Error('Cerebral router - Routes configuration wasn\'t provided.');
+  }
 
   if (!options.baseUrl && options.onlyHash) {
     // autodetect baseUrl

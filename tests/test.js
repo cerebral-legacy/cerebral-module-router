@@ -151,6 +151,17 @@ module.exports = {
       test.done();
   },
 
+  'should throw on missing routes': function(test) {
+
+    var controller = this.controller;
+
+    test.throws(function () {
+      Router(controller);
+    });
+
+    test.done();
+  },
+
   'should throw on missing signal': function(test) {
 
     var controller = this.controller;
@@ -216,7 +227,10 @@ module.exports = {
     });
 
     test.doesNotThrow(function() {
-      controller.signals.match.sync({ param: 'test' })
+      controller.signals.match.sync({ param: 'test' });
+    });
+    test.throws(function() {
+      controller.signals.match.sync();
     });
     test.done();
   },
