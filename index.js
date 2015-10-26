@@ -104,10 +104,6 @@ function router (controller, routes, options) {
 
   function onAddressbarChange(event) {
 
-    if (controller.store.isRemembering()) {
-      return;
-    }
-
     var url = event.target.value;
     var base = addressbar.origin + router.options.baseUrl;
 
