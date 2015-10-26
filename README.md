@@ -2,7 +2,7 @@
 [![Build status](https://travis-ci.org/christianalfoni/cerebral-router.svg?branch=master)](https://travis-ci.org/christianalfoni/cerebral-router)
 [![Coverage Status](https://coveralls.io/repos/christianalfoni/cerebral-router/badge.svg?branch=master&service=github)](https://coveralls.io/github/christianalfoni/cerebral-router?branch=master)
 
-An opinionated URL change handler for Cerebral 
+An opinionated URL change handler for Cerebral
 
 The Cerebral Router as a concept allows you to create your application without thinking about routing and URLs at all. You just create signals as if you would trigger all of them manually. The router can then be hooked on and urls are routed to these already existing signals. So a URL change or manual signal trigger is transparent, it does not matter how you do it. The url will keep in sync.
 
@@ -64,8 +64,8 @@ import controller from './controller.js';
 import messagesOpened from './chains/messagesOpened.js';
 import messageOpened from './chains/messageOpened.js';
 
-controller.signal('messagesOpened', ...messagesOpened);
-controller.signal('messageOpened', ...messagesOpened, ...messageOpened);
+controller.signal('messagesOpened', [...messagesOpened]);
+controller.signal('messageOpened', [...messagesOpened, ...messageOpened]);
 ```
 
 This gives you complete flexibility in how you want to handle route changes.
@@ -85,16 +85,24 @@ Router(controller, {
 ```
 
 ### Redirect
-You can redirect to a different url from within a signal. This will cause a new signal to trigger. Using the debugger you will have to time travel debug to see the initial signal that caused the redirect.
+You can redirect to a different url from within a signal. This will cause a new signal to trigger. Using the debugger you will have to time travel debug to see the initial signal that caused the redirect. To redirect you need to use the exposed router service:
 
 ```js
-signal('appMounted',
+function redirectAction(input, state, output, services) {
+  services.router.redirect('/someurl', {
+    replace: false // Default true
+  });
+}
+
+signal('appMounted', [
   myConditionalAction, {
     success: [someOtherAction],
-    error: [Router.redirect('/error')]
+    error: [redirectAction]
   }
-);
+]);
 ```
+
+By default the router will replace the current url when doing a redirect.
 
 ### Hash
 By default the Cerebral router just takes control of the addressbar and all url changes are handled as normal urls, even hash urls are converted to normal urls. So any route changes you do, being hash or normal will be "captured". If you set the `onlyHash` option to true, only hash urls will be captured and they will also be display in the addressbar as hash routes. That also means you have to define all urls in hyperlinks as: `<a href="/#/">home</a>`, using `/#` in front of the actual url.
