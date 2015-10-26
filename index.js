@@ -96,20 +96,22 @@ function router (controller, routes, options) {
 
   }, {});
 
-  function stripUrl (url){
-    // return stripped url only if it should be routed
-    if (url.indexOf(addressbar.origin + router.options.baseUrl) === 0) {
-      return url.replace(addressbar.origin + router.options.baseUrl, '');
-    }
-  }
-
   function onAddressbarChange(event) {
 
     if (controller.store.isRemembering()) {
       return;
     }
 
-    var url = stripUrl(event.target.value);
+    var url = event.target.value;
+    var base = addressbar.origin + router.options.baseUrl;
+
+    // check if url should be routed and strip off base
+    if (url.indexOf(base) === 0) {
+      url = url.replace(base, '');
+    } else {
+      url = false;
+    }
+
     if (url) {
       event.preventDefault();
       urlMapper(url, wrappedRoutes);
@@ -132,9 +134,10 @@ function router (controller, routes, options) {
       controller.store.rememberInitial(controller.store.getSignals().length - 1);
     }
 
-    var url = stripUrl(addressbar.value);
-    if (url) urlMapper(url, wrappedRoutes);
-
+    addressbar.emit('change', {
+      preventDefault: function() {},
+      target: {value: addressbar.value}
+    });
   };
 
   router.start = function () {

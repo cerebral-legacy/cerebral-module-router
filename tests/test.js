@@ -57,12 +57,6 @@ module.exports = {
       var router = this.router = Router(controller, routes, options.options || {});
 
       return {
-        trigger: function (url) {
-          doesMatch = false;
-          addressbar.value = url;
-          router.trigger();
-          return doesMatch;
-        },
         emit: function (url) {
           doesMatch = false;
           addressbar.emit('change', {
@@ -291,9 +285,6 @@ module.exports = {
           route: '/'
         });
 
-        test.equal(routeTest.trigger('/'), true);
-        test.equal(routeTest.trigger('/?query'), true);
-        test.equal(routeTest.trigger('/?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/'), true);
         test.equal(routeTest.emit('/?query'), true);
         test.equal(routeTest.emit('/?server-query#hash?client-query'), true);
@@ -308,10 +299,6 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.trigger('/path'), false);
-        test.equal(routeTest.trigger('/path?query'), false);
-        test.equal(routeTest.trigger('/path/#'), false);
-
         test.equal(routeTest.emit('/path'), false);
         test.equal(routeTest.emit('/path?query'), false);
         test.equal(routeTest.emit('/path/#'), false);
@@ -325,9 +312,6 @@ module.exports = {
           route: '/test'
         });
 
-        test.equal(routeTest.trigger('/test'), true);
-        test.equal(routeTest.trigger('/test?query'), true);
-        test.equal(routeTest.trigger('/test?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/test'), true);
         test.equal(routeTest.emit('/test?query'), true);
         test.equal(routeTest.emit('/test?server-query#hash?client-query'), true);
@@ -342,8 +326,6 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.trigger('/test/path'), false);
-        test.equal(routeTest.trigger('/test/path/#'), false);
         test.equal(routeTest.emit('/test/path'), false);
         test.equal(routeTest.emit('/test/path/#'), false);
 
@@ -355,9 +337,6 @@ module.exports = {
           route: '/test/test'
         });
 
-        test.equal(routeTest.trigger('/test/test'), true);
-        test.equal(routeTest.trigger('/test/test?query'), true);
-        test.equal(routeTest.trigger('/test/test?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/test/test'), true);
         test.equal(routeTest.emit('/test/test?query'), true);
         test.equal(routeTest.emit('/test/test?server-query#hash?client-query'), true);
@@ -372,8 +351,6 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.trigger('/test/test/path'), false);
-        test.equal(routeTest.trigger('/test/test/path/#'), false);
         test.equal(routeTest.emit('/test/test/path'), false);
         test.equal(routeTest.emit('/test/test/path/#'), false);
 
@@ -385,9 +362,6 @@ module.exports = {
           route: '/:param'
         });
 
-        test.equal(routeTest.trigger('/param'), true);
-        test.equal(routeTest.trigger('/param?query'), true);
-        test.equal(routeTest.trigger('/param?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/param'), true);
         test.equal(routeTest.emit('/param?query'), true);
         test.equal(routeTest.emit('/param?server-query#hash?client-query'), true);
@@ -401,8 +375,6 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.trigger('/param/path'), false);
-        test.equal(routeTest.trigger('/param/path/#'), false);
         test.equal(routeTest.emit('/param/path'), false);
         test.equal(routeTest.emit('/param/path/#'), false);
 
@@ -414,9 +386,6 @@ module.exports = {
           route: '/:param/:param2'
         });
 
-        test.equal(routeTest.trigger('/param/param2'), true);
-        test.equal(routeTest.trigger('/param/param2?query'), true);
-        test.equal(routeTest.trigger('/param/param2?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/param/param2'), true);
         test.equal(routeTest.emit('/param/param2?query'), true);
         test.equal(routeTest.emit('/param/param2?server-query#hash?client-query'), true);
@@ -436,8 +405,6 @@ module.exports = {
           });
         });
 
-        test.equal(routeTest.trigger('/param/param2/path'), false);
-        test.equal(routeTest.trigger('/param/param2/path/#'), false);
         test.equal(routeTest.emit('/param/param2/path'), false);
         test.equal(routeTest.emit('/param/param2/path/#'), false);
 
@@ -449,7 +416,6 @@ module.exports = {
           route: '/*'
         });
 
-        test.equal(routeTest.trigger('/test/test/test'), true);
         test.equal(routeTest.emit('/test/test/test'), true);
 
         test.doesNotThrow(function () {
@@ -470,7 +436,6 @@ module.exports = {
           route: '*'
         });
 
-        test.equal(routeTest.trigger('/test/test/test'), true);
         test.equal(routeTest.emit('/test/test/test'), true);
 
         test.doesNotThrow(function () {
@@ -499,9 +464,6 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.trigger('/base/'), true);
-        test.equal(routeTest.trigger('/base/?query'), true);
-        test.equal(routeTest.trigger('/base/?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/base/'), true);
         test.equal(routeTest.emit('/base/?query'), true);
         test.equal(routeTest.emit('/base/?server-query#hash?client-query'), true);
@@ -515,10 +477,6 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.trigger('/'), false);
-        test.equal(routeTest.trigger('/base/foo'), false);
-        test.equal(routeTest.trigger('/#/'), false);
-        test.equal(routeTest.trigger('/#/base2'), false);
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/base/foo'), false);
         test.equal(routeTest.emit('/#/'), false);
@@ -540,9 +498,6 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.trigger('/#/'), true);
-        test.equal(routeTest.trigger('/#/?query'), true);
-        test.equal(routeTest.trigger('/#/?server-query#hash?client-query'), true);
         test.equal(routeTest.emit('/#/'), true);
         test.equal(routeTest.emit('/#/?query'), true);
         test.equal(routeTest.emit('/#/?server-query#hash?client-query'), true);
@@ -556,8 +511,6 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.trigger('/'), false);
-        test.equal(routeTest.trigger('/#/path'), false);
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/#/path'), false);
 
@@ -573,7 +526,6 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.trigger('/#/test/test/test'), true);
         test.equal(routeTest.emit('/#/test/test/test'), true);
 
         test.doesNotThrow(function () {
@@ -602,8 +554,6 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.trigger('/base#/'), true);
-        test.equal(routeTest.trigger('/base#/?client-query'), true);
         test.equal(routeTest.emit('/base#/'), true);
         test.equal(routeTest.emit('/base#/?client-query'), true);
 
@@ -616,10 +566,6 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.trigger('/'), false);
-        test.equal(routeTest.trigger('/path'), false);
-        test.equal(routeTest.trigger('/base/'), false);
-        test.equal(routeTest.trigger('/base/#/'), false);
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/path'), false);
         test.equal(routeTest.emit('/base/'), false);
@@ -642,8 +588,6 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.trigger('/initial/#/'), true);
-        test.equal(routeTest.trigger('/initial/#/?client-query'), true);
         test.equal(routeTest.emit('/initial/#/'), true);
         test.equal(routeTest.emit('/initial/#/?client-query'), true);
 
@@ -656,9 +600,6 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.trigger('/'), false);
-        test.equal(routeTest.trigger('/#/'), false);
-        test.equal(routeTest.trigger('/#/initial'), false);
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/#/'), false);
         test.equal(routeTest.emit('/#/initial'), false);
@@ -677,8 +618,6 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.trigger('/initial/#/'), true);
-        test.equal(routeTest.trigger('/initial/#/?client-query'), true);
         test.equal(routeTest.emit('/initial/#/'), true);
         test.equal(routeTest.emit('/initial/#/?client-query'), true);
 
@@ -691,9 +630,6 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.trigger('/'), false);
-        test.equal(routeTest.trigger('/#/'), false);
-        test.equal(routeTest.trigger('/#/initial'), false);
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/#/'), false);
         test.equal(routeTest.emit('/#/initial'), false);
