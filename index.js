@@ -28,11 +28,7 @@ function router (controller, routes, options) {
 
   // Create url based on direct signal input
   function getUrl (route, input) {
-    if (route === '*') {
-      return options.onlyHash ? addressbar.hash.slice(1) : addressbar.pathname;
-    } else {
-      return pathToRegexp.compile(route)(input);
-    }
+    return pathToRegexp.compile(route)(input);
   }
 
   wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
@@ -52,10 +48,6 @@ function router (controller, routes, options) {
       throw new Error('Cerebral router - The signal "' + routes[route] + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
     } else {
       signal.chain = [setUrl].concat(signal.chain);
-    }
-
-    if (route === '*') {
-      console.warn('Cerebral router - `*` catch all route definition is deprecated. Use `/*` to define catch all route instead');
     }
 
     function wrappedSignal() {
@@ -144,11 +136,6 @@ function router (controller, routes, options) {
       target: {value: addressbar.value}
     });
 
-  };
-
-  router.start = function () {
-    console.warn('Cerebral router - `start` method is deprecated. Use `trigger` method instead');
-    router.trigger();
   };
 
   router.detach = function(){

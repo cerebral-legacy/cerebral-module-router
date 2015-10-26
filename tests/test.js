@@ -72,11 +72,6 @@ module.exports = {
 
     };
 
-    this.warn = console.warn;
-    console.warn = (function(message) {
-      this.warnMessage = message;
-    }).bind(this);
-
     cb();
   },
 
@@ -85,8 +80,6 @@ module.exports = {
     // test must expose router to this.router
     this.router && this.router.detach();
     delete window.location.lastChangedWith;
-
-    console.warn = this.warn;
 
     cb();
   },
@@ -338,29 +331,6 @@ module.exports = {
     test.done();
   },
 
-  'should log out deprecation warnings': function(test) {
-
-    this.controller.signal('test', [
-      function noop() {}
-    ]);
-    this.controller.signal('test2', [
-      function noop() {}
-    ]);
-
-    this.router = Router(this.controller, {
-      '/': 'test',
-      '*': 'test2'
-    });
-
-    test.equals(this.warnMessage.indexOf('deprecate') >= 0, true);
-    delete this.warnMessage;
-
-    this.router.start();
-    test.equals(this.warnMessage.indexOf('deprecate') >= 0, true);
-
-    test.done();
-  },
-
   matching: {
 
     'full url': {
@@ -549,26 +519,6 @@ module.exports = {
         test.done();
       },
 
-      'deprecated catch all route': function (test) {
-        var routeTest = this.createRouteTest({
-          route: '*'
-        });
-
-        test.equal(routeTest.emit('/test/test/test'), true);
-
-        test.doesNotThrow(function () {
-          routeTest.runSignal();
-        });
-
-        test.doesNotThrow(function () {
-          routeTest.runSignal({
-            param: 'foo'
-          });
-        });
-
-        test.done();
-      }
-
     },
 
     'with baseUrl option': {
@@ -635,29 +585,6 @@ module.exports = {
         test.done();
 
       },
-
-      'deprecated catch all route': function (test) {
-        var routeTest = this.createRouteTest({
-          route: '*',
-          options: {
-            onlyHash: true
-          }
-        });
-
-        test.equal(routeTest.emit('/#/test/test/test'), true);
-
-        test.doesNotThrow(function () {
-          routeTest.runSignal();
-        });
-
-        test.doesNotThrow(function () {
-          routeTest.runSignal({
-            param: 'foo'
-          });
-        });
-
-        test.done();
-      }
 
     },
 
