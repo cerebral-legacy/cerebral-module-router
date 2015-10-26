@@ -22,56 +22,58 @@ var Model = require('cerebral-baobab');
 var addressbar = require('addressbar');
 var Router = require('./../index.js');
 
-var createRouteTest = function (options) {
-
-  var doesMatch = false;
-  var controller = Controller(Model({}));
-  var routerOptions = options.options;
-
-  controller.signal('match', [function () {
-    doesMatch = true;
-  }]);
-
-  var routes = {};
-  routes[options.route] = 'match';
-
-  if (options.initialUrl) {
-    addressbar.value = options.initialUrl;
-  } else {
-    addressbar.value = '/';
-  }
-
-  var router = Router(controller, routes, options.options || {});
-
-  return {
-    trigger: function (url) {
-      doesMatch = false;
-      addressbar.value = url;
-      router.trigger();
-      return doesMatch;
-    },
-    emit: function (url) {
-      doesMatch = false;
-      addressbar.emit('change', {
-        preventDefault: function() {},
-        target: {value: addressbar.origin + url}
-      });
-      return doesMatch;
-    },
-    runSignal: function (payload) {
-      controller.signals.match.sync(payload);
-    }
-  }
-
-};
-
 // TESTS
-
 module.exports = {
 
   setUp: function(cb){
-    this.controller = Controller(Model({}));
+    var controller = this.controller = Controller(Model({}));
     addressbar.value = '/';
+
+    this.createRouteTest = function createRouteTest(options) {
+
+      if (this.router) {
+        throw new Error("Router instance must be detached by `tearDown` script. Do not call `createRouteTest` twice inside one test.");
+      }
+
+      var doesMatch = false;
+      var routerOptions = options.options;
+
+      controller.signal('match', [function () {
+        doesMatch = true;
+      }]);
+
+      var routes = {};
+      routes[options.route] = 'match';
+
+      if (options.initialUrl) {
+        addressbar.value = options.initialUrl;
+      } else {
+        addressbar.value = '/';
+      }
+
+      var router = this.router = Router(controller, routes, options.options || {});
+
+      return {
+        trigger: function (url) {
+          doesMatch = false;
+          addressbar.value = url;
+          router.trigger();
+          return doesMatch;
+        },
+        emit: function (url) {
+          doesMatch = false;
+          addressbar.emit('change', {
+            preventDefault: function() {},
+            target: {value: addressbar.origin + url}
+          });
+          return doesMatch;
+        },
+        runSignal: function (payload) {
+          controller.signals.match.sync(payload);
+        }
+      }
+
+    };
 
     cb();
   },
@@ -176,7 +178,7 @@ module.exports = {
 
       '"/" route': function (test) {
 
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/'
         });
 
@@ -210,7 +212,7 @@ module.exports = {
       },
 
       '"/test" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/test'
         });
 
@@ -240,7 +242,7 @@ module.exports = {
       },
 
       '"/test/test" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/test/test'
         });
 
@@ -270,7 +272,7 @@ module.exports = {
       },
 
       '"/:param" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/:param'
         });
 
@@ -299,7 +301,7 @@ module.exports = {
       },
 
       '"/:param/:param2" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/:param/:param2'
         });
 
@@ -334,7 +336,7 @@ module.exports = {
       },
 
       '"/*" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/*'
         });
 
@@ -360,7 +362,7 @@ module.exports = {
 
       '"/" route': function (test) {
 
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/',
           options: {
             baseUrl: '/base'
@@ -401,7 +403,7 @@ module.exports = {
     'with onlyHash option': {
 
       '"/" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/',
           options: {
             onlyHash: true
@@ -438,7 +440,7 @@ module.exports = {
     'with onlyHash option and baseUrl': {
 
       '"/" route': function (test) {
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
           route: '/',
           options: {
             onlyHash: true,
@@ -478,7 +480,42 @@ module.exports = {
 
       '"/" route': function (test) {
 
-        var routeTest = createRouteTest({
+        var routeTest = this.createRouteTest({
+          route: '/',
+          initialUrl: '/initial/',
+          options: {
+            onlyHash: true
+          }
+        });
+
+        test.equal(routeTest.trigger('/initial/#/'), true);
+        test.equal(routeTest.trigger('/initial/#/?client-query'), true);
+        test.equal(routeTest.emit('/initial/#/'), true);
+        test.equal(routeTest.emit('/initial/#/?client-query'), true);
+
+        test.doesNotThrow(function () {
+          routeTest.runSignal({
+            param: 'foo'
+          });
+        });
+        test.doesNotThrow(function () {
+          routeTest.runSignal({});
+        });
+
+        test.equal(routeTest.trigger('/'), false);
+        test.equal(routeTest.trigger('/#/'), false);
+        test.equal(routeTest.trigger('/#/initial'), false);
+        test.equal(routeTest.emit('/'), false);
+        test.equal(routeTest.emit('/#/'), false);
+        test.equal(routeTest.emit('/#/initial'), false);
+
+        test.done();
+
+      },
+
+      '"/" route': function (test) {
+
+        var routeTest = this.createRouteTest({
           route: '/',
           initialUrl: '/initial/',
           options: {
