@@ -701,36 +701,6 @@ module.exports = {
 
         test.done();
 
-      },
-
-      'root route': function (test) {
-
-        var routeTest = this.createRouteTest({
-          route: '/',
-          initialUrl: '/initial/',
-          options: {
-            onlyHash: true
-          }
-        });
-
-        test.equal(routeTest.emit('/initial/#/'), true);
-        test.equal(routeTest.emit('/initial/#/?client-query'), true);
-
-        test.doesNotThrow(function () {
-          routeTest.runSignal({
-            param: 'foo'
-          });
-        });
-        test.doesNotThrow(function () {
-          routeTest.runSignal({});
-        });
-
-        test.equal(routeTest.emit('/'), false);
-        test.equal(routeTest.emit('/#/'), false);
-        test.equal(routeTest.emit('/#/initial'), false);
-
-        test.done();
-
       }
 
     }
