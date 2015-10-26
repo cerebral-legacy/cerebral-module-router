@@ -140,10 +140,11 @@ function router (controller, routes, options) {
       controller.store.rememberInitial(controller.store.getSignals().length - 1);
     }
 
-    addressbar.emit('change', {
-      preventDefault: function() {},
+    onAddressbarChange({
+      preventDefault: function () {},
       target: {value: addressbar.value}
     });
+
   };
 
   router.start = function () {
