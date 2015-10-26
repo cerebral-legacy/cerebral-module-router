@@ -292,7 +292,7 @@ module.exports = {
     this.router.trigger();
 
     test.equals(addressbar.pathname, '/existing');
-    // test.equals(window.location.lastChangedWith, 'pushState');
+    test.equals(window.location.lastChangedWith, 'pushState');
     test.done();
   },
 

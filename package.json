@@ -16,26 +16,28 @@
     "cerebral",
     "mvc"
   ],
-  "author": "Christian Alfoni",
+  "author": "Christian Alfoni <christianalfoni@gmail.com>",
+  "contributors": [
+    "Aleksey Guryanov <gurianov@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/christianalfoni/cerebral-router/issues"
   },
   "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
   "dependencies": {
-    "addressbar": "^0.4.2",
+    "addressbar": "^0.4.3",
     "url-mapper": "^0.3.2"
   },
   "peerDependencies": {
     "path-to-regexp": "^1.2.1"
   },
   "devDependencies": {
-    "baobab": "^2.0.0",
-    "cerebral": "^0.20.11",
+    "baobab": "^2.1.0",
+    "cerebral": "^0.21.0",
     "cerebral-baobab": "^0.3.1",
     "coveralls": "^2.11.4",
     "istanbul": "^0.4.0",
-    "nodeunit": "^0.9.1",
-    "proxyquire": "^1.7.3"
+    "nodeunit": "^0.9.1"
   }
 }
