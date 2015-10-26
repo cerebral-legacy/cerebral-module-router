@@ -63,15 +63,13 @@ function router (controller, routes, options) {
           url: getUrl(route, input)
         };
       } else {
+        // If called from a url change, add params to input
         var params = pathToRegexp(route).keys;
 
-        // If called from a url change, add params to input
-        if (input.route && input.route.params) {
-          input = params.reduce(function (input, param) {
-            input[param.name] = input.route.params[param.name];
-            return input;
-          }, input);
-        }
+        input = params.reduce(function (input, param) {
+          input[param.name] = input.route.params[param.name];
+          return input;
+        }, input);
       }
 
       // Should always run sync
