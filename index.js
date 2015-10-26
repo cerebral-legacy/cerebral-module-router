@@ -28,7 +28,7 @@ function router (controller, routes, options) {
   function getUrl (route, input) {
     if (route === '*') {
       console.warn('Cerebral router - `*` catch all route definition is deprecated. Use `/*` to define catch all route instead');
-      return options.onlyHash ? addressbar.hash.splice(1) : addressbar.pathname;
+      return options.onlyHash ? addressbar.hash.slice(1) : addressbar.pathname;
     } else {
       return pathToRegexp.compile(route)(input);
     }
