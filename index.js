@@ -105,8 +105,6 @@ function router (controller, routes, options) {
     // check if url should be routed and strip off base
     if (url.indexOf(base) === 0) {
       url = url.replace(base, '');
-    } else {
-      url = false;
     }
 
     if (url) {

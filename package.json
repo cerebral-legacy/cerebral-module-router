@@ -1,6 +1,6 @@
 {
   "name": "cerebral-router",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
