@@ -39,6 +39,7 @@ module.exports = {
       }
 
       var doesMatch = false;
+      var defaultPrevented = false;
       var routerOptions = options.options;
 
       controller.signal('match', [function () {
@@ -59,11 +60,14 @@ module.exports = {
       return {
         emit: function (url) {
           doesMatch = false;
+          defaultPrevented = false;
           addressbar.emit('change', {
-            preventDefault: function() {},
+            preventDefault: function() {
+              defaultPrevented = true;
+            },
             target: {value: addressbar.origin + url}
           });
-          return doesMatch;
+          return (doesMatch === defaultPrevented) && doesMatch;
         },
         runSignal: function (payload) {
           controller.signals.match(payload);
