@@ -100,11 +100,11 @@ function router (controller, routes, options) {
     }
 
     var url = event.target.value;
-    var origin = addressbar.origin;
+    var base = addressbar.origin + options.baseUrl;
 
     // check if url should be routed and strip off base
-    if (url.indexOf(origin) === 0) {
-      url = url.replace(origin + options.baseUrl, '');
+    if (url.indexOf(base) === 0) {
+      url = url.replace(base, '');
     } else {
       url = false;
     }
