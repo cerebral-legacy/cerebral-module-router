@@ -95,23 +95,22 @@ function router (controller, routes, options) {
 
   function onAddressbarChange(event) {
 
+    var matchedRoute;
+    var url = event.target.value.replace(addressbar.origin, '');
+
     if (controller.store.isRemembering()) {
       return;
     }
 
-    var url = event.target.value;
-    var base = addressbar.origin + options.baseUrl;
-
-    // check if url should be routed and strip off base
-    if (url.indexOf(base) === 0) {
-      url = url.replace(base, '');
-    } else {
-      url = false;
-    }
-
-    if (url) {
+    // check if url should be routed
+    if (url.indexOf(options.baseUrl) === 0) {
       event.preventDefault();
-      urlMapper(url, wrappedRoutes);
+      matchedRoute = urlMapper(url.replace(options.baseUrl, ''), wrappedRoutes);
+
+      if (!matchedRoute) {
+        console.warn('Cerebral router - No route matched "' + url + '" url, navigation was prevented. ' +
+                     'Please verify url or catch unmatched routes with a "/*" route.');
+      }
     }
 
   }

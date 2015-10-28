@@ -68,7 +68,10 @@ module.exports = {
             target: {value: addressbar.origin + url}
           });
           // secure preventing default link href navigation
-          return (doesMatch === defaultPrevented)? doesMatch : undefined;
+          // matched and prevented => true
+          // missed and not prevented => false
+          // missed and prevente => 'prevented'
+          return (doesMatch === defaultPrevented) ? doesMatch : 'prevented';
         },
         runSignal: function (payload) {
           controller.signals.match(payload);
@@ -76,6 +79,11 @@ module.exports = {
       }
 
     };
+
+    this.warn = console.warn;
+    console.warn = (function(message) {
+      this.warnMessage = message;
+    }).bind(this);
 
     cb();
   },
@@ -85,6 +93,8 @@ module.exports = {
     // test must expose router to this.router
     this.router && this.router.detach();
     delete window.location.lastChangedWith;
+
+    console.warn = this.warn;
 
     cb();
   },
@@ -336,6 +346,24 @@ module.exports = {
     test.done();
   },
 
+  'should warn if navigation prevented': function(test) {
+
+      var routeTest = this.createRouteTest({
+        route: '/',
+        options: {
+          baseUrl: '/base'
+        }
+      });
+
+      test.equal(routeTest.emit('/missing'), false);
+      test.equal(this.warnMessage, undefined);
+
+      test.equal(routeTest.emit('/base/missing'), 'prevented');
+      test.equal(this.warnMessage.indexOf('prevented') >= 0, true);
+
+      test.done();
+  },
+
   matching: {
 
     'full url': {
@@ -360,9 +388,9 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.emit('/path'), false);
-        test.equal(routeTest.emit('/path?query'), false);
-        test.equal(routeTest.emit('/path/#'), false);
+        test.equal(routeTest.emit('/path'), 'prevented');
+        test.equal(routeTest.emit('/path?query'), 'prevented');
+        test.equal(routeTest.emit('/path/#'), 'prevented');
 
         test.done();
 
@@ -387,8 +415,8 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.emit('/test/path'), false);
-        test.equal(routeTest.emit('/test/path/#'), false);
+        test.equal(routeTest.emit('/test/path'), 'prevented');
+        test.equal(routeTest.emit('/test/path/#'), 'prevented');
 
         test.done();
       },
@@ -412,8 +440,8 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.emit('/test/test/path'), false);
-        test.equal(routeTest.emit('/test/test/path/#'), false);
+        test.equal(routeTest.emit('/test/test/path'), 'prevented');
+        test.equal(routeTest.emit('/test/test/path/#'), 'prevented');
 
         test.done();
       },
@@ -436,8 +464,8 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.emit('/param/path'), false);
-        test.equal(routeTest.emit('/param/path/#'), false);
+        test.equal(routeTest.emit('/param/path'), 'prevented');
+        test.equal(routeTest.emit('/param/path/#'), 'prevented');
 
         test.done();
       },
@@ -466,8 +494,8 @@ module.exports = {
           });
         });
 
-        test.equal(routeTest.emit('/param/param2/path'), false);
-        test.equal(routeTest.emit('/param/param2/path/#'), false);
+        test.equal(routeTest.emit('/param/param2/path'), 'prevented');
+        test.equal(routeTest.emit('/param/param2/path/#'), 'prevented');
 
         test.done();
       },
@@ -498,8 +526,8 @@ module.exports = {
           });
         });
 
-        test.equal(routeTest.emit('/paramtest/42'), false);
-        test.equal(routeTest.emit('/param-test/foo'), false);
+        test.equal(routeTest.emit('/paramtest/42'), 'prevented');
+        test.equal(routeTest.emit('/param-test/foo'), 'prevented');
 
         test.done();
       },
@@ -551,7 +579,7 @@ module.exports = {
         });
 
         test.equal(routeTest.emit('/'), false);
-        test.equal(routeTest.emit('/base/foo'), false);
+        test.equal(routeTest.emit('/base/foo'), 'prevented');
         test.equal(routeTest.emit('/#/'), false);
         test.equal(routeTest.emit('/#/base2'), false);
 
@@ -585,7 +613,7 @@ module.exports = {
         });
 
         test.equal(routeTest.emit('/'), false);
-        test.equal(routeTest.emit('/#/path'), false);
+        test.equal(routeTest.emit('/#/path'), 'prevented');
 
         test.done();
 
