@@ -67,7 +67,8 @@ module.exports = {
             },
             target: {value: addressbar.origin + url}
           });
-          return (doesMatch === defaultPrevented) && doesMatch;
+          // secure preventing default link href navigation
+          return (doesMatch === defaultPrevented)? doesMatch : undefined;
         },
         runSignal: function (payload) {
           controller.signals.match(payload);
