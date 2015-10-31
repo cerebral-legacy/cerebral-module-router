@@ -130,9 +130,19 @@ function router (controller, routes, options) {
       controller.store.rememberInitial(controller.store.getSignals().length - 1);
     }
 
+    // Normalize initial url
+    var url = addressbar.value;
+    if (url.indexOf(addressbar.origin) === 0) {
+      url = url.replace(addressbar.origin, '');
+    }
+
+    if (url.indexOf(options.baseUrl) === 0) {
+      url = url.replace(options.baseUrl, '');
+    }
+
     onAddressbarChange({
       preventDefault: function () {},
-      target: {value: addressbar.value}
+      target: {value: options.baseUrl + url}
     });
 
   };
