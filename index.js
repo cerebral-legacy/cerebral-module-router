@@ -98,6 +98,11 @@ function router (controller, routes, options) {
     var matchedRoute;
     var url = event.target.value.replace(addressbar.origin, '');
 
+    if (options.onlyHash && !~url.indexOf('#')) {
+      // treat hash absense as root route
+      url = url + '#/';
+    }
+
     if (controller.store.isRemembering()) {
       return;
     }
@@ -130,19 +135,9 @@ function router (controller, routes, options) {
       controller.store.rememberInitial(controller.store.getSignals().length - 1);
     }
 
-    // Normalize initial url
-    var url = addressbar.value;
-    if (url.indexOf(addressbar.origin) === 0) {
-      url = url.replace(addressbar.origin, '');
-    }
-
-    if (url.indexOf(options.baseUrl) === 0) {
-      url = url.replace(options.baseUrl, '');
-    }
-
     onAddressbarChange({
       preventDefault: function () {},
-      target: {value: options.baseUrl + url}
+      target: {value: addressbar.value}
     });
 
   };

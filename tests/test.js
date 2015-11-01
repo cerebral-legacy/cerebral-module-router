@@ -140,15 +140,16 @@ module.exports = {
     test.done();
   },
 
-  'should match and pass route, params and query to input': function(test) {
+  'should match and pass route, params, hash and query to input': function(test) {
 
-    addressbar.value ='/test?foo=bar&bar=baz';
+    addressbar.value ='/test?foo=bar&bar=baz#hash';
       this.controller.signal('test', [
         function checkAction(input) {
           test.deepEqual(input, {
             route: {
-              url: '/test?foo=bar&bar=baz',
+              url: '/test?foo=bar&bar=baz#hash',
               path: '/test',
+              hash: 'hash',
               params: { param: 'test' },
               query: { foo: "bar", bar: "baz" }
             },
@@ -364,46 +365,6 @@ module.exports = {
       test.done();
   },
 
-  'should trigger the initial url change correctly with hash and baseurl from root': function(test) {
-
-    addressbar.value = addressbar.origin + '/';
-
-    this.controller.signal('test', [
-      function checkAction(input) { test.ok(true); }
-    ]);
-
-    this.router = Router(this.controller, {
-      '/': 'test'
-    }, {
-      hashOnly: true,
-      baseUrl: '/todomvc/'
-    });
-
-    test.expect(1);
-    this.router.trigger();
-    test.done();
-  },
-
-  'should trigger the initial url change correctly with hash and baseurl from baseurl': function(test) {
-
-    addressbar.value = addressbar.origin + '/todomvc/';
-
-    this.controller.signal('test', [
-      function checkAction(input) { test.ok(true); }
-    ]);
-
-    this.router = Router(this.controller, {
-      '/': 'test'
-    }, {
-      hashOnly: true,
-      baseUrl: '/todomvc/'
-    });
-
-    test.expect(1);
-    this.router.trigger();
-    test.done();
-  },
-
   matching: {
 
     'full url': {
@@ -416,7 +377,8 @@ module.exports = {
 
         test.equal(routeTest.emit('/'), true);
         test.equal(routeTest.emit('/?query'), true);
-        test.equal(routeTest.emit('/?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/#hash'), true);
+        test.equal(routeTest.emit('/?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -430,7 +392,7 @@ module.exports = {
 
         test.equal(routeTest.emit('/path'), 'prevented');
         test.equal(routeTest.emit('/path?query'), 'prevented');
-        test.equal(routeTest.emit('/path/#'), 'prevented');
+        test.equal(routeTest.emit('/path/#/'), 'prevented');
 
         test.done();
 
@@ -438,12 +400,13 @@ module.exports = {
 
       'simple route': function (test) {
         var routeTest = this.createRouteTest({
-          route: '/test'
+          route: '/foo'
         });
 
-        test.equal(routeTest.emit('/test'), true);
-        test.equal(routeTest.emit('/test?query'), true);
-        test.equal(routeTest.emit('/test?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/foo'), true);
+        test.equal(routeTest.emit('/foo?query'), true);
+        test.equal(routeTest.emit('/foo#hash'), true);
+        test.equal(routeTest.emit('/foo?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -455,20 +418,22 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.emit('/test/path'), 'prevented');
-        test.equal(routeTest.emit('/test/path/#'), 'prevented');
+        test.equal(routeTest.emit('/'), 'prevented');
+        test.equal(routeTest.emit('/bar/foo'), 'prevented');
+        test.equal(routeTest.emit('/bar#/foo'), 'prevented');
 
         test.done();
       },
 
       'deep route': function (test) {
         var routeTest = this.createRouteTest({
-          route: '/test/test/test/42'
+          route: '/foo/bar/baz/42'
         });
 
-        test.equal(routeTest.emit('/test/test/test/42'), true);
-        test.equal(routeTest.emit('/test/test/test/42?query'), true);
-        test.equal(routeTest.emit('/test/test/test/42?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/foo/bar/baz/42'), true);
+        test.equal(routeTest.emit('/foo/bar/baz/42?query'), true);
+        test.equal(routeTest.emit('/foo/bar/baz/42?#hash'), true);
+        test.equal(routeTest.emit('/foo/bar/baz/42??query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -480,8 +445,10 @@ module.exports = {
           routeTest.runSignal();
         });
 
-        test.equal(routeTest.emit('/test/test/path'), 'prevented');
-        test.equal(routeTest.emit('/test/test/path/#'), 'prevented');
+        test.equal(routeTest.emit('/foo/bar/baz/'), 'prevented');
+        test.equal(routeTest.emit('/foo/bar/baz/43'), 'prevented');
+        test.equal(routeTest.emit('/foo/bar/baz/42/foo'), 'prevented');
+        test.equal(routeTest.emit('/#/foo/bar/baz/42'), 'prevented');
 
         test.done();
       },
@@ -491,9 +458,11 @@ module.exports = {
           route: '/:param'
         });
 
-        test.equal(routeTest.emit('/param'), true);
-        test.equal(routeTest.emit('/param?query'), true);
-        test.equal(routeTest.emit('/param?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/foo'), true);
+        test.equal(routeTest.emit('/bar'), true);
+        test.equal(routeTest.emit('/foo?query'), true);
+        test.equal(routeTest.emit('/foo?#hash'), true);
+        test.equal(routeTest.emit('/foo?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -504,8 +473,8 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.emit('/param/path'), 'prevented');
-        test.equal(routeTest.emit('/param/path/#'), 'prevented');
+        test.equal(routeTest.emit('/foo/bar'), 'prevented');
+        test.equal(routeTest.emit('/#/foo'), 'prevented');
 
         test.done();
       },
@@ -515,9 +484,10 @@ module.exports = {
           route: '/:param/:param2'
         });
 
-        test.equal(routeTest.emit('/param/param2'), true);
-        test.equal(routeTest.emit('/param/param2?query'), true);
-        test.equal(routeTest.emit('/param/param2?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/foo/bar'), true);
+        test.equal(routeTest.emit('/foo/bar?query'), true);
+        test.equal(routeTest.emit('/foo/bar#hash'), true);
+        test.equal(routeTest.emit('/foo/bar?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -534,8 +504,8 @@ module.exports = {
           });
         });
 
-        test.equal(routeTest.emit('/param/param2/path'), 'prevented');
-        test.equal(routeTest.emit('/param/param2/path/#'), 'prevented');
+        test.equal(routeTest.emit('/foo/bar/baz'), 'prevented');
+        test.equal(routeTest.emit('/#/foo/bar'), 'prevented');
 
         test.done();
       },
@@ -545,10 +515,11 @@ module.exports = {
           route: '/:param([\\w+-?]+)-test/:param2(\\d+)'
         });
 
-        test.equal(routeTest.emit('/param-test/42'), true);
-        test.equal(routeTest.emit('/param-param-test/42'), true);
-        test.equal(routeTest.emit('/param-test/42?client-query'), true);
-        test.equal(routeTest.emit('/param-test/42?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/foo-test/42'), true);
+        test.equal(routeTest.emit('/foo-bar-test/42'), true);
+        test.equal(routeTest.emit('/foo-test/42?query'), true);
+        test.equal(routeTest.emit('/foo-test/42#hash'), true);
+        test.equal(routeTest.emit('/foo-test/42?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -566,8 +537,9 @@ module.exports = {
           });
         });
 
-        test.equal(routeTest.emit('/paramtest/42'), 'prevented');
-        test.equal(routeTest.emit('/param-test/foo'), 'prevented');
+        test.equal(routeTest.emit('/footest/42'), 'prevented');
+        test.equal(routeTest.emit('/foo-test/bar'), 'prevented');
+        test.equal(routeTest.emit('/#/foo-test/42'), 'prevented');
 
         test.done();
       },
@@ -577,7 +549,9 @@ module.exports = {
           route: '/*'
         });
 
-        test.equal(routeTest.emit('/test/test/test'), true);
+        test.equal(routeTest.emit('/'), true);
+        test.equal(routeTest.emit('/foo'), true);
+        test.equal(routeTest.emit('/foo/bar/baz'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -605,9 +579,10 @@ module.exports = {
           }
         });
 
-        test.equal(routeTest.emit('/base/'), true);
-        test.equal(routeTest.emit('/base/?query'), true);
-        test.equal(routeTest.emit('/base/?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/base'), true);
+        test.equal(routeTest.emit('/base?query'), true);
+        test.equal(routeTest.emit('/base#hash'), true);
+        test.equal(routeTest.emit('/base?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -621,7 +596,7 @@ module.exports = {
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/base/foo'), 'prevented');
         test.equal(routeTest.emit('/#/'), false);
-        test.equal(routeTest.emit('/#/base2'), false);
+        test.equal(routeTest.emit('/#/base/'), false);
 
         test.done();
 
@@ -641,7 +616,10 @@ module.exports = {
 
         test.equal(routeTest.emit('/#/'), true);
         test.equal(routeTest.emit('/#/?query'), true);
-        test.equal(routeTest.emit('/#/?server-query#hash?client-query'), true);
+        test.equal(routeTest.emit('/#/#hash'), true);
+        test.equal(routeTest.emit('/#/?query#hash'), true);
+        // treat hash absense as root route
+        test.equal(routeTest.emit('/'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -652,8 +630,8 @@ module.exports = {
           routeTest.runSignal({});
         });
 
-        test.equal(routeTest.emit('/'), false);
-        test.equal(routeTest.emit('/#/path'), 'prevented');
+        test.equal(routeTest.emit('/#/foo'), 'prevented');
+        test.equal(routeTest.emit('/foo#/'), false);
 
         test.done();
 
@@ -673,7 +651,11 @@ module.exports = {
         });
 
         test.equal(routeTest.emit('/base#/'), true);
-        test.equal(routeTest.emit('/base#/?client-query'), true);
+        test.equal(routeTest.emit('/base#/?query'), true);
+        test.equal(routeTest.emit('/base#/#hash'), true);
+        test.equal(routeTest.emit('/base#/?query#hash'), true);
+        // treat hash absense as root route
+        test.equal(routeTest.emit('/base'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -685,9 +667,9 @@ module.exports = {
         });
 
         test.equal(routeTest.emit('/'), false);
-        test.equal(routeTest.emit('/path'), false);
-        test.equal(routeTest.emit('/base/'), false);
-        test.equal(routeTest.emit('/base/#/'), false);
+        test.equal(routeTest.emit('/foo'), false);
+        test.equal(routeTest.emit('/base#/foo'), 'prevented');
+        test.equal(routeTest.emit('/base#/base#/'), 'prevented');
 
         test.done();
       }
@@ -707,7 +689,9 @@ module.exports = {
         });
 
         test.equal(routeTest.emit('/initial/#/'), true);
-        test.equal(routeTest.emit('/initial/#/?client-query'), true);
+        test.equal(routeTest.emit('/initial/#/?query'), true);
+        test.equal(routeTest.emit('/initial/#/#hash'), true);
+        test.equal(routeTest.emit('/initial/#/?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -720,7 +704,9 @@ module.exports = {
 
         test.equal(routeTest.emit('/'), false);
         test.equal(routeTest.emit('/#/'), false);
-        test.equal(routeTest.emit('/#/initial'), false);
+        test.equal(routeTest.emit('/#/initial/'), false);
+        test.equal(routeTest.emit('/initial/#/foo'), 'prevented');
+        test.equal(routeTest.emit('/initial/#/foo#/'), 'prevented');
 
         test.done();
 

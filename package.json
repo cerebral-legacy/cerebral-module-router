@@ -27,7 +27,7 @@
   "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
   "dependencies": {
     "addressbar": "^0.4.3",
-    "url-mapper": "^0.3.3"
+    "url-mapper": "^0.4.0"
   },
   "peerDependencies": {
     "path-to-regexp": "^1.2.1"
