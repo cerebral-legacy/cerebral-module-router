@@ -7,7 +7,6 @@ var wrappedRoutes = null;
 function router (controller, routes, options) {
 
   options = options || {};
-  controller.services.router = router;
 
   if(!routes) {
     throw new Error('Cerebral router - Routes configuration wasn\'t provided.');
@@ -127,45 +126,56 @@ function router (controller, routes, options) {
 
   }
 
-  router.trigger = function () {
-
-    // If developing, remember signals before
-    // route trigger
-    if (controller.store.getSignals().length) {
-      controller.store.rememberInitial(controller.store.getSignals().length - 1);
-    }
-
-    onAddressbarChange({
-      preventDefault: function () {},
-      target: {value: addressbar.value}
-    });
-
-  };
-
-  router.detach = function(){
-    addressbar.removeListener('change', onAddressbarChange);
-    controller.removeListener('change', onControllerChange);
-  };
-
-  router.redirect = function(url, params) {
-
-    params = params || {};
-    params.replace = (typeof params.replace === "undefined") ? true : params.replace;
-
-    addressbar.value = {
-      value: options.baseUrl + url,
-      replace: params.replace
-    };
-
-    urlMapper(url, wrappedRoutes);
-
-  };
-
   addressbar.on('change', onAddressbarChange);
   controller.on('change', onControllerChange);
 
-  return router;
+  return controller.services.router = {
+    trigger: function () {
+
+      // If developing, remember signals before
+      // route trigger
+      if (controller.store.getSignals().length) {
+        controller.store.rememberInitial(controller.store.getSignals().length - 1);
+      }
+
+      onAddressbarChange({
+        preventDefault: function () {},
+        target: {value: addressbar.value}
+      });
+
+    },
+
+    detach: function(){
+      addressbar.removeListener('change', onAddressbarChange);
+      controller.removeListener('change', onControllerChange);
+    },
+
+    redirect: function(url, params) {
+
+      params = params || {};
+      params.replace = (typeof params.replace === "undefined") ? true : params.replace;
+
+      addressbar.value = {
+        value: options.baseUrl + url,
+        replace: params.replace
+      };
+
+      urlMapper(url, wrappedRoutes);
+
+    }
+  };
 
 }
+
+router.redirect = function(url, params) {
+
+  function action(input, state, output, services) {
+    return services.router.redirect(url, params);
+  }
+
+  action.displayName = 'redirect(' + url + ')';
+
+  return action;
+};
 
 module.exports = router;

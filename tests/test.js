@@ -23,6 +23,7 @@ var Controller = require('cerebral');
 var Model = require('cerebral-baobab');
 var addressbar = require('addressbar');
 var Router = require('./../index.js');
+var redirect = Router.redirect;
 
 // TESTS
 module.exports = {
@@ -290,9 +291,7 @@ module.exports = {
       function checkAction(input) { test.ok(true); }
     ]);
     this.controller.signal('missing', [
-      function checkAction(input, state, output, services) {
-        services.router.redirect('/existing');
-      }
+      redirect('/existing')
     ]);
 
     this.router = Router(this.controller, {
@@ -312,9 +311,7 @@ module.exports = {
       function checkAction(input) { test.ok(true); }
     ]);
     this.controller.signal('missing', [
-      function checkAction(input, state, output, services) {
-        services.router.redirect('/existing', {replace: false});
-      }
+        redirect('/existing', {replace: false})
     ]);
 
     this.router = Router(this.controller, {
