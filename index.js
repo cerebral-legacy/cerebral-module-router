@@ -49,10 +49,11 @@ function router (controller, routes, options) {
       signal.chain = [setUrl].concat(signal.chain);
     }
 
-    function wrappedSignal() {
+    function wrappedSignal(payload, options) {
 
-      var hasSync = arguments[0] === true;
-      var input = hasSync ? arguments[1] || {} : arguments[0] || {};
+      var input = payload || {};
+      options = options || {};
+      options.isSync = true;
 
       if (!input.route) {
         input.route = {
@@ -69,7 +70,7 @@ function router (controller, routes, options) {
       }
 
       // Should always run sync
-      signal.apply(null, hasSync ? [arguments[0], input, arguments[2]] : [true, input, arguments[1]]);
+      signal(input, options);
     }
 
     // callback for urlMapper
@@ -80,7 +81,7 @@ function router (controller, routes, options) {
     signalParent[signalPath[0]] = wrappedSignal;
 
     wrappedSignal.sync = function(payload){
-      wrappedSignal(true, payload);
+      wrappedSignal(payload, {isSync: true});
     };
 
     wrappedSignal.getUrl = function(payload){
