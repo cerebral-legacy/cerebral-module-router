@@ -2,8 +2,6 @@ var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
 var pathToRegexp = require('path-to-regexp');
 
-var wrappedRoutes = null;
-
 function router (controller, routes, options) {
 
   options = options || {};
@@ -30,66 +28,86 @@ function router (controller, routes, options) {
     return pathToRegexp.compile(route)(input);
   }
 
-  wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
+  var wrappedRoutes = Object.keys(routes)
+    .map(function(route){
+      return {
+        path: route,
+        signal: routes[route]
+      };
+    })
+    .reduce(function wrapRoutes(wrappedRoutes, route) {
 
-    var signalPath = routes[route].split('.');
-    var signalParent = controller.signals;
-    var signal;
-    while(signalPath.length - 1) {
-      signalParent = signalParent[signalPath.shift()];
-    }
-    signal = signalParent[signalPath];
-    if(!signal) {
-      throw new Error('Cerebral router - The signal "' + routes[route] + '" for the route "' + route + '" does not exist.');
-    }
+      if (typeof route.signal === 'object') {
+        Object.keys(route.signal).reduce(function(wrappedRoutes, nestedRoute) {
+          nestedRoute = {
+            path: route.path + nestedRoute,
+            signal: route.signal[nestedRoute]
+          };
 
-    if (typeof signal.getUrl === "function") {
-      throw new Error('Cerebral router - The signal "' + routes[route] + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
-    } else {
-      signal.chain = [setUrl].concat(signal.chain);
-    }
+          return wrapRoutes(wrappedRoutes, nestedRoute);
+        }, wrappedRoutes);
 
-    function wrappedSignal(payload, options) {
-
-      var input = payload || {};
-      options = options || {};
-      options.isSync = true;
-
-      if (!input.route) {
-        input.route = {
-          url: getUrl(route, input)
-        };
-      } else {
-        // If called from a url change, add params to input
-        var params = pathToRegexp(route).keys;
-
-        input = params.reduce(function (input, param) {
-          input[param.name] = input.route.params[param.name];
-          return input;
-        }, input);
+        return wrappedRoutes;
       }
 
-      // Should always run sync
-      signal(input, options);
-    }
+      var signalPath = route.signal.split('.');
+      var signalParent = controller.signals;
+      var signal;
+      while(signalPath.length - 1) {
+        signalParent = signalParent[signalPath.shift()];
+      }
+      signal = signalParent[signalPath];
+      if(!signal) {
+        throw new Error('Cerebral router - The signal "' + route.signal + '" for the route "' + route.path + '" does not exist.');
+      }
 
-    // callback for urlMapper
-    wrappedRoutes[route] = function(payload) {
-      wrappedSignal({ route: payload });
-    };
+      if (typeof signal.getUrl === "function") {
+        throw new Error('Cerebral router - The signal "' + route.signal + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
+      } else {
+        signal.chain = [setUrl].concat(signal.chain);
+      }
 
-    signalParent[signalPath[0]] = wrappedSignal;
+      function wrappedSignal(payload, options) {
 
-    wrappedSignal.sync = function(payload){
-      wrappedSignal(payload, {isSync: true});
-    };
+        var input = payload || {};
+        options = options || {};
+        options.isSync = true;
 
-    wrappedSignal.getUrl = function(payload){
-      var url = getUrl(route, payload);
-      return options.baseUrl + url;
-    };
+        if (!input.route) {
+          input.route = {
+            url: getUrl(route.path, input)
+          };
+        } else {
+          // If called from a url change, add params to input
+          var params = pathToRegexp(route.path).keys;
 
-    return wrappedRoutes;
+          input = params.reduce(function (input, param) {
+            input[param.name] = input.route.params[param.name];
+            return input;
+          }, input);
+        }
+
+        // Should always run sync
+        signal(input, options);
+      }
+
+      // callback for urlMapper
+      wrappedRoutes[route.path] = function(payload) {
+        wrappedSignal({ route: payload });
+      };
+
+      signalParent[signalPath[0]] = wrappedSignal;
+
+      wrappedSignal.sync = function(payload){
+        wrappedSignal(payload, {isSync: true});
+      };
+
+      wrappedSignal.getUrl = function(payload){
+        var url = getUrl(route.path, payload);
+        return options.baseUrl + url;
+      };
+
+      return wrappedRoutes;
 
   }, {});
 

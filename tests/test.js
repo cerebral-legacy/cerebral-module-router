@@ -141,6 +141,36 @@ module.exports = {
     test.done();
   },
 
+  'should support nested route definitions': function(test) {
+    function checkAction() { test.ok(true); }
+
+    this.controller.signal('foo', [ checkAction ]);
+    this.controller.signal('bar', [ checkAction ]);
+    this.controller.signal('baz', [ checkAction ]);
+
+    this.router = Router(this.controller, {
+      '/foo': {
+        '/'   : 'foo',
+        '/bar': 'bar',
+        '/baz': {
+          '/': 'baz'
+        }
+      }
+    });
+
+    addressbar.value = '/foo';
+    this.router.trigger();
+
+    addressbar.value = '/foo/bar';
+    this.router.trigger();
+
+    addressbar.value = '/foo/baz';
+    this.router.trigger();
+
+    test.expect(3);
+    test.done();
+  },
+
   'should match and pass route, params, hash and query to input': function(test) {
 
     addressbar.value ='/test?foo=bar&bar=baz#hash';
