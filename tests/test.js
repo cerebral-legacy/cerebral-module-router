@@ -222,6 +222,26 @@ module.exports = {
     test.done();
   },
 
+  'should throw on missing nested signal': function(test) {
+
+    var controller = this.controller;
+    this.controller.signal('test', [ function noop() {} ]);
+
+    test.throws(function () {
+      Router(controller, {
+        '/': 'test.test'
+      });
+    });
+
+    test.throws(function () {
+      Router(controller, {
+        '/': 'test1.test'
+      });
+    });
+
+    test.done();
+  },
+
   'should throw on duplicate signal': function(test) {
 
     var controller = this.controller;

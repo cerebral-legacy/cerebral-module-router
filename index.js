@@ -54,10 +54,10 @@ function router (controller, routes, options) {
       var signalParent = controller.signals;
       var signal;
       while(signalPath.length - 1) {
-        signalParent = signalParent[signalPath.shift()];
+        signalParent = signalParent[signalPath.shift()] || {};
       }
       signal = signalParent[signalPath];
-      if(!signal) {
+      if(typeof signal !== "function") {
         throw new Error('Cerebral router - The signal "' + route.signal + '" for the route "' + route.path + '" does not exist.');
       }
 
@@ -164,11 +164,6 @@ function router (controller, routes, options) {
 
     },
 
-    detach: function(){
-      addressbar.removeListener('change', onAddressbarChange);
-      controller.removeListener('change', onControllerChange);
-    },
-
     redirect: function(url, params) {
 
       params = params || {};
@@ -181,6 +176,15 @@ function router (controller, routes, options) {
 
       urlMapper(url, wrappedRoutes);
 
+    },
+
+    getUrl: function() {
+      return controller.get(urlStorePath);
+    },
+
+    detach: function(){
+      addressbar.removeListener('change', onAddressbarChange);
+      controller.removeListener('change', onControllerChange);
     }
   };
 
