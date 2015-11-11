@@ -114,7 +114,8 @@ function router (controller, routes, options) {
   function onAddressbarChange(event) {
 
     var matchedRoute;
-    var url = event.target.value.replace(addressbar.origin, '');
+    var url = event ? event.target.value : addressbar.value;
+    url = url.replace(addressbar.origin, '');
 
     if (options.onlyHash && !~url.indexOf('#')) {
       // treat hash absense as root route
@@ -127,7 +128,7 @@ function router (controller, routes, options) {
 
     // check if url should be routed
     if (url.indexOf(options.baseUrl) === 0) {
-      event.preventDefault();
+      event && event.preventDefault();
       matchedRoute = urlMapper(url.replace(options.baseUrl, ''), wrappedRoutes);
 
       if (!matchedRoute) {
@@ -157,10 +158,7 @@ function router (controller, routes, options) {
         controller.store.rememberInitial(controller.store.getSignals().length - 1);
       }
 
-      onAddressbarChange({
-        preventDefault: function () {},
-        target: {value: addressbar.value}
-      });
+      onAddressbarChange();
 
     },
 
@@ -174,7 +172,7 @@ function router (controller, routes, options) {
         replace: params.replace
       };
 
-      urlMapper(url, wrappedRoutes);
+      onAddressbarChange();
 
     },
 
