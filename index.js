@@ -67,40 +67,41 @@ function router (controller, routes, options) {
         signal.chain = [setUrl].concat(signal.chain);
       }
 
+      // urlMapper callback
+      wrappedRoutes[route.path] = function(parsedInput){
+
+        var input = {
+          // exposed for setUrl action
+          route: parsedInput
+        };
+
+        var params = parsedInput.params ? Object.keys(parsedInput.params) : [];
+        // add params to signal input
+        input = params.reduce(function (input, param) {
+          input[param] = parsedInput.params[param];
+          return input;
+        }, input);
+
+        signal(input, {isSync: true});
+      };
+
       function wrappedSignal(payload, options) {
 
         var input = payload || {};
         options = options || {};
-        options.isSync = true;
 
-        if (!input.route) {
-          input.route = {
-            url: getUrl(route.path, input)
-          };
-        } else {
-          // If called from a url change, add params to input
-          var params = pathToRegexp(route.path).keys;
-
-          input = params.reduce(function (input, param) {
-            input[param.name] = input.route.params[param.name];
-            return input;
-          }, input);
-        }
+        // exposed for setUrl action
+        input.route = {
+          // reconstruct url from signal input
+          url: getUrl(route.path, input)
+        };
 
         // Should always run sync
+        options.isSync = true;
         signal(input, options);
       }
 
-      // callback for urlMapper
-      wrappedRoutes[route.path] = function(payload) {
-        wrappedSignal({ route: payload });
-      };
-
-      signalParent[signalPath[0]] = wrappedSignal;
-
-      wrappedSignal.sync = function(payload){
-        wrappedSignal(payload, {isSync: true});
-      };
+      signalParent[signalPath[0]] = wrappedSignal.sync = wrappedSignal;
 
       wrappedSignal.getUrl = function(payload){
         var url = getUrl(route.path, payload);

@@ -382,14 +382,14 @@ module.exports = {
     ]);
 
     this.router = Router(this.controller, {
-      '/test': 'test'
+      '/:foo': 'test'
     });
 
-    this.controller.signals.test();
+    this.controller.signals.test({ foo: 'bar' });
     addressbar.value = '/';
 
     this.router.trigger();
-    test.equals(addressbar.pathname, '/test');
+    test.equals(addressbar.pathname, '/bar');
 
     test.done();
   },
