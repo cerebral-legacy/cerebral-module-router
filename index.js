@@ -68,17 +68,17 @@ function router (controller, routes, options) {
       }
 
       // urlMapper callback
-      wrappedRoutes[route.path] = function(parsedInput){
+      wrappedRoutes[route.path] = function(parsedUrl){
 
         var input = {
           // exposed for setUrl action
-          route: parsedInput
+          route: parsedUrl
         };
 
-        var params = parsedInput.params ? Object.keys(parsedInput.params) : [];
+        var params = Object.keys(parsedUrl.params);
         // add params to signal input
         input = params.reduce(function (input, param) {
-          input[param] = parsedInput.params[param];
+          input[param] = parsedUrl.params[param];
           return input;
         }, input);
 
