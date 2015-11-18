@@ -158,44 +158,20 @@ module.exports = {
       }
     });
 
+    this.controller.store.reset();
     addressbar.value = '/foo';
     this.router.trigger();
 
+    this.controller.store.reset();
     addressbar.value = '/foo/bar';
     this.router.trigger();
 
+    this.controller.store.reset();
     addressbar.value = '/foo/baz';
     this.router.trigger();
 
     test.expect(3);
     test.done();
-  },
-
-  'should match and pass route, params, hash and query to input': function(test) {
-
-    addressbar.value ='/test?foo=bar&bar=baz#hash';
-      this.controller.signal('test', [
-        function checkAction(input) {
-          test.deepEqual(input, {
-            route: {
-              url: '/test?foo=bar&bar=baz#hash',
-              path: '/test',
-              hash: 'hash',
-              params: { param: 'test' },
-              query: { foo: "bar", bar: "baz" }
-            },
-            param: 'test'
-          });
-        }
-      ]);
-
-      this.router = Router(this.controller, {
-        '/:param': 'test'
-      });
-      this.router.trigger();
-
-      test.expect(1);
-      test.done();
   },
 
   'should throw on missing routes': function(test) {
@@ -257,34 +233,6 @@ module.exports = {
     test.done();
   },
 
-  'should set url into store': function (test) {
-
-    this.controller.signal('test', [ function noop() {} ]);
-
-    this.router = Router(this.controller, {
-      '/': 'test'
-    });
-    this.router.trigger();
-
-    test.equals(this.controller.get(['url']), '/');
-    test.done();
-  },
-
-  'should set url into store at custom path': function (test) {
-
-    this.controller.signal('test', [ function noop() {} ]);
-
-    this.router = Router(this.controller, {
-      '/': 'test'
-    }, {
-      urlStorePath: ['nested', 'path', 'to', 'url']
-    });
-    this.router.trigger();
-
-    test.equals(this.controller.get(['nested', 'path', 'to', 'url']), '/');
-    test.done();
-  },
-
   'should preserve sync method for wrapped signal': function (test) {
 
     var controller = this.controller;
@@ -299,6 +247,23 @@ module.exports = {
     test.throws(function() {
       controller.signals.match.sync();
     });
+    test.done();
+  },
+
+  'should expose `getUrl` method on router instance': function (test) {
+
+    this.createRouteTest({
+      route: '/:param',
+      options: {
+        baseUrl: '/test',
+        onlyHash: true
+      }
+    });
+
+    this.controller.signals.match({ param: 'test' });
+
+    test.equals(addressbar.value, 'http://localhost:3000/test#/test');
+    test.equals(this.router.getUrl(), '/test');
     test.done();
   },
 
@@ -559,14 +524,14 @@ module.exports = {
 
       'regexp route': function (test) {
         var routeTest = this.createRouteTest({
-          route: '/:param([\\w+-?]+)-test/:param2(\\d+)'
+          route: '/:param([\\w+-?]+)-test/:param2(%3A\\d+)'
         });
 
-        test.equal(routeTest.emit('/foo-test/42'), true);
-        test.equal(routeTest.emit('/foo-bar-test/42'), true);
-        test.equal(routeTest.emit('/foo-test/42?query'), true);
-        test.equal(routeTest.emit('/foo-test/42#hash'), true);
-        test.equal(routeTest.emit('/foo-test/42?query#hash'), true);
+        test.equal(routeTest.emit('/foo-test/%3A42'), true);
+        test.equal(routeTest.emit('/foo-bar-test/%3A42'), true);
+        test.equal(routeTest.emit('/foo-test/%3A42?query'), true);
+        test.equal(routeTest.emit('/foo-test/%3A42#hash'), true);
+        test.equal(routeTest.emit('/foo-test/%3A42?query#hash'), true);
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
@@ -584,9 +549,9 @@ module.exports = {
           });
         });
 
-        test.equal(routeTest.emit('/footest/42'), 'prevented');
+        test.equal(routeTest.emit('/footest/%3A42'), 'prevented');
         test.equal(routeTest.emit('/foo-test/bar'), 'prevented');
-        test.equal(routeTest.emit('/#/foo-test/42'), 'prevented');
+        test.equal(routeTest.emit('/#/foo-test/%3A42'), 'prevented');
 
         test.done();
       },
@@ -602,7 +567,7 @@ module.exports = {
 
         test.doesNotThrow(function () {
           routeTest.runSignal({
-            '0': 'bar'
+            0: 'bar'
           });
         });
 
