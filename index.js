@@ -69,27 +69,26 @@ function router (controller, routesConfig, options) {
         throw new Error('Cerebral router - The signal "' + route.signalName + '" has already been bound to route. Create a new signal and reuse actions instead if needed.');
       }
 
-      // Should always run sync
-      routes[route.route] = signal.sync;
-
       // Create url based on direct signal input
       function getUrl (input) {
         return options.baseUrl + urlMapper.stringify(route.route, input || {});
       }
 
       function wrappedSignal(payload, signalOptions) {
+        addressbar.value = getUrl(payload);
 
         signalOptions = signalOptions || {};
 
         // Should always run sync
         signalOptions.isSync = true;
         signal(payload, signalOptions);
-
-        addressbar.value = getUrl(payload);
       }
 
       // expose method for restoring url from params
-      wrappedSignal.getUrl = routes[route.route].getUrl = getUrl;
+      wrappedSignal.getUrl = getUrl;
+
+      // pass wrapped signal to url-mapper routes
+      routes[route.route] = wrappedSignal;
 
       // replace signal on wrapped one in controller
       signalParent[signalPath[0]] = wrappedSignal.sync = wrappedSignal;
@@ -120,7 +119,6 @@ function router (controller, routesConfig, options) {
 
       if (matchedRoute) {
         matchedRoute.match(matchedRoute.values);
-        addressbar.value = matchedRoute.match.getUrl(matchedRoute.values);
       } else {
         console.warn('Cerebral router - No route matched "' + url + '" url, navigation was prevented. ' +
                      'Please verify url or catch unmatched routes with a "/*" route.');
