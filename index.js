@@ -1,6 +1,17 @@
 var urlMapper = require('url-mapper');
-var addressbar = require('addressbar');
 var pathToRegexp = require('path-to-regexp');
+var addressbar;
+try {
+  addressbar = require('addressbar');
+} catch(e) {
+  addressbar = {
+    pathname: '/',
+    value: '',
+    origin: '',
+    on: function(){},
+    removeListener: function(){}
+  };
+}
 
 function router (controller, routes, options) {
 
@@ -151,7 +162,7 @@ function router (controller, routes, options) {
   controller.on('change', onControllerChange);
 
   return controller.services.router = {
-    trigger: function () {
+    trigger: function (url) {
 
       // If developing, remember signals before
       // route trigger
@@ -159,6 +170,7 @@ function router (controller, routes, options) {
         controller.store.rememberInitial(controller.store.getSignals().length - 1);
       }
 
+      addressbar.value = url || addressbar.value;
       onAddressbarChange();
 
     },
