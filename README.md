@@ -47,9 +47,8 @@ onMessageClick(id) {
 }
 ```
 
-The signature of a state change is the signal and the payload passed.
-We can bind this signature to a route.
-Lets imagine we have implemented our whole application and it works great, we just need to update the addressbar with a url representing the current state of the application.
+The signature of a state change is the signal and the payload passed. We can bind this signature to a route. Lets imagine we have implemented our whole application and it works great, we just need to update the addressbar with a url representing the current state of the application.
+
 So let us also add a `homeOpened` signal so that we handle the root url as well.
 
 ```javascript
@@ -75,10 +74,11 @@ Router(controller, {
 
 Initial url would be handled automatically during application bootstrap if you are using `cerebral-react` (in container's `componentDidMount` method) or `cerebral-angular` (module's `run` section) packages.
 Otherwise you should call `trigger` method to ensure that initial url is handled.
-The router checks the url and fires the signal related to the url.
-The url will be parsed and any payload will be passed on the signal.
-That means if you go to `example.com/messages/123` it will trigger the `messageOpened` signal with the payload `{id: '123'}`.
+
+The router checks the url and fires the signal related to the url. The url will be parsed and any payload will be passed on the signal. That means if you go to `example.com/messages/123` it will trigger the `messageOpened` signal with the payload `{id: '123'}`.
+
 But if you click a message in the list it will also trigger the `messageOpened` signal with the payload `{id: '456'}` and now the url will also update to `example.com/messages/456`.
+
 So it works both ways!
 
 The important thing to understand here is that your application does not trigger urls to change its state.
@@ -116,6 +116,7 @@ Router(controller, {
 With Cerebral you are already used to composing chains and actions together and this is also effective when creating routes.
 Now you might say, "I do not want to load my messages every time I open a message!".
 There are multiple ways to handle this. It depends on when you want to load the messages.
+
 But lets say you want to load them whenever you actually go to `/messages`.
 Inside your `messagesOpened` signal you can just check if there is an ID on the input.
 If there is an ID it means you are about to open a message, if not it means you are just opening the messages.
