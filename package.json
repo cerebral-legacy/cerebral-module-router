@@ -1,6 +1,6 @@
 {
   "name": "cerebral-router",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/christianalfoni/cerebral-router.git"
+    "url": "git+https://github.com/cerebral/cerebral-router.git"
   },
   "keywords": [
     "router",
@@ -22,9 +22,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/christianalfoni/cerebral-router/issues"
+    "url": "https://github.com/cerebral/cerebral-router/issues"
   },
-  "homepage": "https://github.com/christianalfoni/cerebral-router#readme",
+  "homepage": "https://github.com/cerebral/cerebral-router#readme",
   "dependencies": {
     "addressbar": "^0.4.4",
     "url-mapper": "^0.5.2"
