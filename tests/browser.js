@@ -20,7 +20,7 @@ global.document = {};
 
 // SETUP
 var Controller = require('cerebral');
-var Model = require('cerebral-baobab');
+var Model = require('cerebral-model-baobab');
 var addressbar = require('addressbar');
 var Router = require('./../index.js');
 var redirect = Router.redirect;
