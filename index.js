@@ -55,7 +55,7 @@ function router (controller, routesConfig, options) {
 
       // retrieve actual signal by name
       var signalPath = route.signalName.split('.');
-      var signalParent = controller.signals;
+      var signalParent = controller.getSignals();
       var signal;
       while(signalPath.length - 1) {
         signalParent = signalParent[signalPath.shift()] || {};
@@ -108,7 +108,7 @@ function router (controller, routesConfig, options) {
       url = url + '#/';
     }
 
-    if (controller.store.isRemembering()) {
+    if (controller.getStore().isRemembering()) {
       return;
     }
 
@@ -130,13 +130,13 @@ function router (controller, routesConfig, options) {
   addressbar.on('change', onUrlChange);
 
   // auto expose router instance to services
-  return controller.services.router = {
+  return controller.getServices().router = {
     trigger: function (url) {
 
       // If developing, remember signals before
       // route trigger
-      if (controller.store.getSignals().length) {
-        controller.store.rememberInitial(controller.store.getSignals().length - 1);
+      if (controller.getStore().getSignals().length) {
+        controller.getStore().rememberInitial(controller.getStore().getSignals().length - 1);
       }
 
       addressbar.value = url || addressbar.value;
