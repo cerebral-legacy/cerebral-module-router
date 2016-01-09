@@ -171,8 +171,8 @@ function router (controller, routesConfig, options) {
 
 router.redirect = function(url, params) {
 
-  function action(input, state, output, services) {
-    return services.router.redirect(url, params);
+  function action(arg) {
+    return arg.services.router.redirect(url, params);
   }
 
   action.displayName = 'redirect(' + url + ')';

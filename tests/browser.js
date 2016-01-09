@@ -43,9 +43,11 @@ module.exports = {
       var defaultPrevented = false;
       var routerOptions = options.options;
 
-      controller.signal('match', [function () {
-        doesMatch = true;
-      }]);
+      controller.signals({
+        'match': [function () {
+          doesMatch = true;
+        }]
+      });
 
       var routes = {};
       routes[options.route] = 'match';
@@ -75,7 +77,7 @@ module.exports = {
           return (doesMatch === defaultPrevented) ? doesMatch : 'prevented';
         },
         runSignal: function (payload) {
-          controller.signals.match(payload);
+          controller.getSignals().match(payload);
         }
       }
 
@@ -102,14 +104,16 @@ module.exports = {
 
   'should run signal synchronously': function(test) {
 
-    this.controller.signal('test', [
-      function checkAction() {
-        test.ok(true);
-      }
-    ]);
+    this.controller.signals({
+      'test': [
+        function checkAction() {
+          test.ok(true);
+        }
+      ]
+    });
 
     // async run before wrapping
-    this.controller.signals.test();
+    this.controller.getSignals().test();
 
     // sync run on trigger
     this.router = Router(this.controller, {
@@ -118,7 +122,7 @@ module.exports = {
     this.router.trigger();
 
     // sync run after wrapping
-    this.controller.signals.test();
+    this.controller.getSignals().test();
 
     test.expect(2);
     test.done();
@@ -126,11 +130,13 @@ module.exports = {
 
   'should run nested signal': function(test) {
 
-    this.controller.signal('test.test1.test2', [
-      function checkAction() {
-        test.ok(true);
-      }
-    ]);
+    this.controller.signals({
+      'test.test1.test2': [
+        function checkAction() {
+          test.ok(true);
+        }
+      ]
+    });
 
     this.router = Router(this.controller, {
       '/': 'test.test1.test2'
@@ -144,9 +150,11 @@ module.exports = {
   'should support nested route definitions': function(test) {
     function checkAction() { test.ok(true); }
 
-    this.controller.signal('foo', [ checkAction ]);
-    this.controller.signal('bar', [ checkAction ]);
-    this.controller.signal('baz', [ checkAction ]);
+    this.controller.signals({
+      'foo': [ checkAction ],
+      'bar': [ checkAction ],
+      'baz': [ checkAction ]
+    });
 
     this.router = Router(this.controller, {
       '/foo': {
@@ -158,15 +166,15 @@ module.exports = {
       }
     });
 
-    this.controller.store.reset();
+    this.controller.getStore().reset();
     addressbar.value = '/foo';
     this.router.trigger();
 
-    this.controller.store.reset();
+    this.controller.getStore().reset();
     addressbar.value = '/foo/bar';
     this.router.trigger();
 
-    this.controller.store.reset();
+    this.controller.getStore().reset();
     addressbar.value = '/foo/baz';
     this.router.trigger();
 
@@ -201,7 +209,9 @@ module.exports = {
   'should throw on missing nested signal': function(test) {
 
     var controller = this.controller;
-    this.controller.signal('test', [ function noop() {} ]);
+    this.controller.signals({
+      'test': [ function noop() {} ]
+    });
 
     test.throws(function () {
       Router(controller, {
@@ -221,7 +231,9 @@ module.exports = {
   'should throw on duplicate signal': function(test) {
 
     var controller = this.controller;
-    this.controller.signal('test', [ function noop() {} ]);
+    this.controller.signals({
+      'test': [ function noop() {} ]
+    });
 
     test.throws(function () {
       Router(controller, {
@@ -242,10 +254,10 @@ module.exports = {
     });
 
     test.doesNotThrow(function() {
-      controller.signals.match.sync({ param: 'test' });
+      controller.getSignals().match.sync({ param: 'test' });
     });
     test.throws(function() {
-      controller.signals.match.sync();
+      controller.getSignals().match.sync();
     });
     test.done();
   },
@@ -260,7 +272,7 @@ module.exports = {
       }
     });
 
-    this.controller.signals.match({ param: 'test' });
+    this.controller.getSignals().match({ param: 'test' });
 
     test.equals(addressbar.value, 'http://localhost:3000/test#/test');
     test.equals(this.router.getUrl(), '/test');
@@ -277,24 +289,26 @@ module.exports = {
       }
     });
 
-    test.equals(this.controller.signals.match.getUrl({ param: 'test' }), '/test#/test');
+    test.equals(this.controller.getSignals().match.getUrl({ param: 'test' }), '/test#/test');
     test.done();
   },
 
   'should not change url for regular signal call': function (test) {
 
-    this.controller.signal('test', [
-      function (input, store) {
-        store.set(['foo'], 'bar');
-      }
-    ]);
+    this.controller.signals({
+      'test': [
+        function (arg) {
+          arg.state.set(['foo'], 'bar');
+        }
+      ]
+    });
 
     this.createRouteTest({
       route: '/test',
       initialUrl: '/initial'
     });
 
-    this.controller.signals.test.sync();
+    this.controller.getSignals().test.sync();
 
     test.equals(addressbar.pathname, '/initial');
     test.done();
@@ -302,12 +316,14 @@ module.exports = {
 
   'should replaceState on redirect by default':  function (test) {
 
-    this.controller.signal('existing', [
-      function checkAction(input) { test.ok(true); }
-    ]);
-    this.controller.signal('missing', [
-      redirect('/existing')
-    ]);
+    this.controller.signals({
+      'existing': [
+        function checkAction() { test.ok(true); }
+      ],
+      'missing': [
+        redirect('/existing')
+      ]
+    });
 
     this.router = Router(this.controller, {
       '/existing': 'existing',
@@ -322,12 +338,14 @@ module.exports = {
 
   'should allow pushState on redirect':  function (test) {
 
-    this.controller.signal('existing', [
-      function checkAction(input) { test.ok(true); }
-    ]);
-    this.controller.signal('missing', [
-        redirect('/existing', {replace: false})
-    ]);
+    this.controller.signals({
+      'existing': [
+        function checkAction() { test.ok(true); }
+      ],
+      'missing': [
+          redirect('/existing', {replace: false})
+      ]
+    });
 
     this.router = Router(this.controller, {
       '/existing': 'existing',
@@ -342,15 +360,17 @@ module.exports = {
 
   'should remember while developing': function(test) {
 
-    this.controller.signal('test', [
-      function checkAction(input) { test.ok(true); }
-    ]);
+    this.controller.signals({
+      'test': [
+        function checkAction() { test.ok(true); }
+      ]
+    });
 
     this.router = Router(this.controller, {
       '/:foo': 'test'
     });
 
-    this.controller.signals.test({ foo: 'bar' });
+    this.controller.getSignals().test({ foo: 'bar' });
     addressbar.value = '/';
 
     this.router.trigger();
