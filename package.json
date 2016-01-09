@@ -30,9 +30,8 @@
     "url-mapper": "^0.5.2"
   },
   "devDependencies": {
-    "baobab": "^2.2.0",
     "cerebral": "^0.30.0",
-    "cerebral-baobab": "^0.4.2",
+    "cerebral-model-baobab": "^0.4.5",
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.1",
     "nodeunit": "^0.9.1"
