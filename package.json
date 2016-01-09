@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "baobab": "^2.2.0",
-    "cerebral": "^0.26.1",
+    "cerebral": "^0.30.0",
     "cerebral-baobab": "^0.4.2",
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.1",
