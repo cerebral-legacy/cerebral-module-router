@@ -44,7 +44,7 @@ module.exports = {
       var routerOptions = options.options;
 
       controller.signals({
-        'match': [function () {
+        match: [function () {
           doesMatch = true;
         }]
       });
@@ -58,7 +58,9 @@ module.exports = {
         addressbar.value = '/';
       }
 
-      var router = this.router = Router(controller, routes, options.options || {});
+      controller.modules({
+        router: Router(routes, routerOptions || {})
+      });
 
       return {
         emit: function (url) {
@@ -93,8 +95,8 @@ module.exports = {
 
   tearDown: function(cb) {
 
-    // test must expose router to this.router
-    this.router && this.router.detach();
+    var router = this.controller.getServices().router;
+    if (router) router.detach();
     delete window.location.lastChangedWith;
 
     console.warn = this.warn;
@@ -105,21 +107,21 @@ module.exports = {
   'should run signal synchronously': function(test) {
 
     this.controller.signals({
-      'test': [
-        function checkAction() {
-          test.ok(true);
-        }
-      ]
+      test : [function checkAction() {
+        test.ok(true);
+      }]
     });
 
     // async run before wrapping
     this.controller.getSignals().test();
 
-    // sync run on trigger
-    this.router = Router(this.controller, {
-      '/': 'test'
+    this.controller.modules({
+      router: Router({
+        '/': 'test'
+      })
     });
-    this.router.trigger();
+    // sync run on trigger
+    this.controller.getServices().router.trigger();
 
     // sync run after wrapping
     this.controller.getSignals().test();
@@ -131,17 +133,17 @@ module.exports = {
   'should run nested signal': function(test) {
 
     this.controller.signals({
-      'test.test1.test2': [
-        function checkAction() {
-          test.ok(true);
-        }
-      ]
+      'test.test1.test2': [function checkAction() {
+        test.ok(true);
+      }]
     });
 
-    this.router = Router(this.controller, {
-      '/': 'test.test1.test2'
+    this.controller.modules({
+      router: Router({
+        '/': 'test.test1.test2'
+      })
     });
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
 
     test.expect(1);
     test.done();
@@ -156,27 +158,29 @@ module.exports = {
       'baz': [ checkAction ]
     });
 
-    this.router = Router(this.controller, {
-      '/foo': {
-        '/'   : 'foo',
-        '/bar': 'bar',
-        '/baz': {
-          '/': 'baz'
+    this.controller.modules({
+      router: Router({
+        '/foo': {
+          '/'   : 'foo',
+          '/bar': 'bar',
+          '/baz': {
+            '/': 'baz'
+          }
         }
-      }
+      })
     });
 
     this.controller.getStore().reset();
     addressbar.value = '/foo';
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
 
     this.controller.getStore().reset();
     addressbar.value = '/foo/bar';
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
 
     this.controller.getStore().reset();
     addressbar.value = '/foo/baz';
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
 
     test.expect(3);
     test.done();
@@ -187,7 +191,7 @@ module.exports = {
     var controller = this.controller;
 
     test.throws(function () {
-      Router(controller);
+      Router();
     });
 
     test.done();
@@ -198,8 +202,10 @@ module.exports = {
     var controller = this.controller;
 
     test.throws(function () {
-      Router(controller, {
-        '/': 'test'
+      controller.modules({
+        router: Router({
+          '/': 'test'
+        })
       });
     });
 
@@ -214,14 +220,18 @@ module.exports = {
     });
 
     test.throws(function () {
-      Router(controller, {
-        '/': 'test.test'
+      controller.modules({
+        router: Router({
+          '/': 'test.test'
+        })
       });
     });
 
     test.throws(function () {
-      Router(controller, {
-        '/': 'test1.test'
+      controller.modules({
+        router: Router({
+          '/': 'test1.test'
+        })
       });
     });
 
@@ -236,9 +246,11 @@ module.exports = {
     });
 
     test.throws(function () {
-      Router(controller, {
-        '/': 'test',
-        '/:test': 'test'
+      controller.modules({
+        router: Router({
+          '/': 'test',
+          '/:test': 'test'
+        })
       });
     });
 
@@ -262,7 +274,7 @@ module.exports = {
     test.done();
   },
 
-  'should expose `getUrl` method on router instance': function (test) {
+  'should expose `getUrl` method on router service': function (test) {
 
     this.createRouteTest({
       route: '/:param',
@@ -275,7 +287,7 @@ module.exports = {
     this.controller.getSignals().match({ param: 'test' });
 
     test.equals(addressbar.value, 'http://localhost:3000/test#/test');
-    test.equals(this.router.getUrl(), '/test');
+    test.equals(this.controller.getServices().router.getUrl(), '/test');
     test.done();
   },
 
@@ -296,11 +308,9 @@ module.exports = {
   'should not change url for regular signal call': function (test) {
 
     this.controller.signals({
-      'test': [
-        function (arg) {
-          arg.state.set(['foo'], 'bar');
-        }
-      ]
+      'test': [function (arg) {
+        arg.state.set(['foo'], 'bar');
+      }]
     });
 
     this.createRouteTest({
@@ -325,11 +335,13 @@ module.exports = {
       ]
     });
 
-    this.router = Router(this.controller, {
-      '/existing': 'existing',
-      '/*': 'missing'
+    this.controller.modules({
+      router: Router({
+        '/existing': 'existing',
+        '/*': 'missing'
+      })
     });
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
 
     test.equals(addressbar.pathname, '/existing');
     test.equals(window.location.lastChangedWith, 'replaceState');
@@ -347,11 +359,13 @@ module.exports = {
       ]
     });
 
-    this.router = Router(this.controller, {
-      '/existing': 'existing',
-      '/*': 'missing'
+    this.controller.modules({
+      router: Router({
+        '/existing': 'existing',
+        '/*': 'missing'
+      })
     });
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
 
     test.equals(addressbar.pathname, '/existing');
     test.equals(window.location.lastChangedWith, 'pushState');
@@ -366,14 +380,16 @@ module.exports = {
       ]
     });
 
-    this.router = Router(this.controller, {
-      '/:foo': 'test'
+    this.controller.modules({
+      router: Router({
+        '/:foo': 'test'
+      })
     });
 
     this.controller.getSignals().test({ foo: 'bar' });
     addressbar.value = '/';
 
-    this.router.trigger();
+    this.controller.getServices().router.trigger();
     test.equals(addressbar.pathname, '/bar');
 
     test.done();

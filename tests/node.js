@@ -13,22 +13,24 @@ var Model = require('cerebral-model-baobab');
 var Router = require('./../index.js');
 
 module.exports['should work in node.js'] = function(test){
-    var controller = Controller(Model({}));
-    controller.signals({
-      'test': [
-          function checkAction(input) {
-              test.ok(true);
-          }
-      ]
-    });
+  var controller = Controller(Model({}));
+  controller.signals({
+    'test': [function checkAction(input) {
+      test.ok(true);
+    }]
+  });
 
-    var router = Router(controller, {
-        '/test': 'test'
-    });
+  controller.modules({
+    router: Router({
+      '/test': 'test'
+    })
+  });
 
-    router.trigger('/test');
-    router.detach();
+  var router = controller.getServices().router;
 
-    test.expect(1);
-    test.done();
+  router.trigger('/test');
+  router.detach();
+
+  test.expect(1);
+  test.done();
 };

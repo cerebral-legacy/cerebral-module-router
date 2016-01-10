@@ -1,4 +1,4 @@
-# cerebral-router
+# cerebral-module-router
 An opinionated URL change handler for Cerebral
 
 [![NPM version][npm-image]][npm-url]
@@ -8,7 +8,7 @@ An opinionated URL change handler for Cerebral
 
 ### Install
 
-`npm install cerebral-router`
+`npm install cerebral-module-router`
 
 ### How to use
 
@@ -53,7 +53,7 @@ So let us also add a `homeOpened` signal so that we handle the root url as well.
 
 ```javascript
 
-import Router from 'cerebral-router';
+import Router from 'cerebral-module-router';
 import controller from './controller.js';
 import homeOpened from './signals/homeOpened';
 import messagesOpened from './signals/messagesOpened';
@@ -147,7 +147,7 @@ As you can see it is very powerful.
 
 ### Tell me more about how routes matched
 
-`cerebral-router` relies on [`url-mapper`](https://github.com/cerebral/url-mapper) default behavior:
+`cerebral-module-router` relies on [`url-mapper`](https://github.com/cerebral/url-mapper) default behavior:
 
 * [`path-to-regexp`](https://github.com/pillarjs/path-to-regexp) library is used to define routes and payload parameters.
 It tweaked to preserve payload parameters with `Number` and `Boolean` types, prepending it with colon.
@@ -174,13 +174,13 @@ Then `url-mapper` matches it to route `/messages/:id` and extracts payload `{id:
 
 Feel free to implement [`compileFn`](https://github.com/cerebral/url-mapper/#matcher) which return your own `parse` and `stringify` methods for given route.
 The only recommendation is: parse method for previously stringified payload should result the same payload. Just like `JSON.parse(JSON.stringify(object))`.
-[Create an issue](https://github.com/cerebral/cerebral-router/issues/new) if you need this now since `cerebral-router` had to be patched to support custom mapper.
+[Create an issue](https://github.com/cerebral/cerebral-module-router/issues/new) if you need this now since `cerebral-module-router` had to be patched to support custom mapper.
 
-[npm-image]: https://img.shields.io/npm/v/cerebral-router.svg?style=flat
-[npm-url]: https://npmjs.org/package/cerebral-router
-[travis-image]: https://img.shields.io/travis/cerebral/cerebral-router.svg?style=flat
-[travis-url]: https://travis-ci.org/cerebral/cerebral-router
-[coveralls-image]: https://img.shields.io/coveralls/cerebral/cerebral-router.svg?style=flat
-[coveralls-url]: https://coveralls.io/r/cerebral/cerebral-router?branch=master
-[bithound-image]: https://www.bithound.io/github/cerebral/cerebral-router/badges/score.svg
-[bithound-url]: https://www.bithound.io/github/cerebral/cerebral-router
+[npm-image]: https://img.shields.io/npm/v/cerebral-module-router.svg?style=flat
+[npm-url]: https://npmjs.org/package/cerebral-module-router
+[travis-image]: https://img.shields.io/travis/cerebral/cerebral-module-router.svg?style=flat
+[travis-url]: https://travis-ci.org/cerebral/cerebral-module-router
+[coveralls-image]: https://img.shields.io/coveralls/cerebral/cerebral-module-router.svg?style=flat
+[coveralls-url]: https://coveralls.io/r/cerebral/cerebral-module-router?branch=master
+[bithound-image]: https://www.bithound.io/github/cerebral/cerebral-module-router/badges/score.svg
+[bithound-url]: https://www.bithound.io/github/cerebral/cerebral-module-router
