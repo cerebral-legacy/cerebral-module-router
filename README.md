@@ -23,8 +23,10 @@ import homeOpened from './signals/homeOpened';
 import messagesOpened from './signals/messagesOpened';
 import messageOpened from './signals/messageOpened';
 
-controller.signal('messagesOpened', messagesOpened);
-controller.signal('messageOpened', messageOpened);
+controller.signals({
+  messagesOpened,
+  messageOpened
+);
 ```
 
 When we want to open the messages we call the signal:
@@ -59,21 +61,25 @@ import homeOpened from './signals/homeOpened';
 import messagesOpened from './signals/messagesOpened';
 import messageOpened from './signals/messageOpened';
 
-controller.signal('homeOpened', homeOpened);
-controller.signal('messagesOpened', messagesOpened);
-controller.signal('messageOpened', messageOpened);
+controller.signals({
+  homeOpened,
+  messagesOpened,
+  messageOpened
+);
 
-Router(controller, {
-  '/': 'homeOpened',
-  '/messages': 'messagesOpened',
-  '/messages/:id': 'messageOpened'
-}, {
-  mapper: { query: true } // Read about this below
-});
+controller.modules({
+  router: Router({
+    '/': 'homeOpened',
+    '/messages': 'messagesOpened',
+    '/messages/:id': 'messageOpened'
+  }, {
+    mapper: { query: true } // Read about this below
+  });
+})
 ```
 
 Initial url would be handled automatically during application bootstrap if you are using `cerebral-react` (in container's `componentDidMount` method) or `cerebral-angular` (module's `run` section) packages.
-Otherwise you should call `trigger` method to ensure that initial url is handled.
+Otherwise you should call `trigger` method of exposed service to ensure that initial url is handled.
 
 The router checks the url and fires the signal related to the url. The url will be parsed and any payload will be passed on the signal. That means if you go to `example.com/messages/123` it will trigger the `messageOpened` signal with the payload `{id: '123'}`.
 
@@ -104,13 +110,17 @@ But when you expose urls you could go directly to `/messages/456`. So how do you
 ```javascript
 
 ...
-controller.signal('messageOpened', [...messagesOpened, ...messageOpened]);
-
-Router(controller, {
-  '/': 'homeOpened',
-  '/messages': 'messagesOpened',
-  '/messages/:id': 'messageOpened'
+controller.signals({
+  messageOpened: [...messagesOpened, ...messageOpened]
 });
+
+controller.modules({
+  router: Router({
+    '/': 'homeOpened',
+    '/messages': 'messagesOpened',
+    '/messages/:id': 'messageOpened'
+  });
+})
 ```
 
 With Cerebral you are already used to composing chains and actions together and this is also effective when creating routes.
@@ -156,15 +166,17 @@ It tweaked to preserve payload parameters with `Number` and `Boolean` types, pre
 Routable part of url is extracted based on `onlyHash` and `baseUrl` options provided to router.
 
 ```javascript
-Router(controller, {
-  '/': 'homeOpened',
-  '/messages': 'messagesOpened',
-  '/messages/:id': 'messageOpened'
-}, {
-  onlyHash: true,
-  baseUrl: '/path',
-  mapper: { query: true }
-});
+controller.modules({
+  router: Router({
+    '/': 'homeOpened',
+    '/messages': 'messagesOpened',
+    '/messages/:id': 'messageOpened'
+  },  {
+    onlyHash: true,
+    baseUrl: '/path',
+    mapper: { query: true }
+  });
+})
 ```
 
 With given config and `https://example.com/path#/messages/123?withComments:true` url `/messages/123?withComments:true` is routable part.
