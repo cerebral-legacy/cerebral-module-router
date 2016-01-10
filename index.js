@@ -81,6 +81,7 @@ function router (controller, routesConfig, options) {
 
         // Should always run sync
         signalOptions.isSync = true;
+        signalOptions.isRouted = true;
         signal(payload, signalOptions);
       }
 
