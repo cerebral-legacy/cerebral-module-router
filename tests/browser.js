@@ -44,7 +44,7 @@ module.exports = {
       var routerOptions = options.options;
 
       controller.signals({
-        match: [function () {
+        match: [function setMatch () {
           doesMatch = true;
         }]
       });
@@ -302,6 +302,21 @@ module.exports = {
     });
 
     test.equals(this.controller.getSignals().match.getUrl({ param: 'test' }), '/test#/test');
+    test.done();
+  },
+
+  'should expose original `chains` for wrapped signal': function (test) {
+
+    this.createRouteTest({
+      route: '/:param',
+      options: {
+        baseUrl: '/test',
+        onlyHash: true
+      }
+    });
+
+    test.equals(typeof this.controller.getSignals().match.chain[0], 'function');
+    test.equals(this.controller.getSignals().match.chain[0].name, 'setMatch');
     test.done();
   },
 

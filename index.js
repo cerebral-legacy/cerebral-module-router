@@ -178,6 +178,7 @@ function wrapSignals (routesConfig, signals, getUrl) {
 
       // expose method for restoring url from params
       wrappedSignal.getUrl = getUrl.bind(null, route);
+      wrappedSignal.chain = signal.chain;
 
       // pass wrapped signal to url-mapper routes
       routes[route.route] = wrappedSignal;
