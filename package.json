@@ -1,6 +1,6 @@
 {
   "name": "cerebral-module-router",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
@@ -26,11 +26,11 @@
   },
   "homepage": "https://github.com/cerebral/cerebral-module-router#readme",
   "dependencies": {
-    "addressbar": "^0.4.4",
-    "url-mapper": "^0.5.2"
+    "addressbar": "^1.0.1",
+    "url-mapper": "^1.0.0"
   },
   "devDependencies": {
-    "cerebral": "^0.30.0",
+    "cerebral": "^0.32.0",
     "cerebral-model-baobab": "^0.4.5",
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.1",
