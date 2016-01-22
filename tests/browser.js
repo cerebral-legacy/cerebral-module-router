@@ -56,6 +56,7 @@ module.exports = {
       }
 
       controller.modules({
+        devtools: function () {},
         router: Router(routes, routerOptions || {})
       })
 
@@ -110,6 +111,7 @@ module.exports = {
     this.controller.getSignals().test()
 
     this.controller.modules({
+      devtools: function () {},
       router: Router({
         '/': 'test'
       })
@@ -132,6 +134,7 @@ module.exports = {
     })
 
     this.controller.modules({
+      devtools: function () {},
       router: Router({
         '/': 'test.test1.test2'
       })
@@ -152,6 +155,7 @@ module.exports = {
     })
 
     this.controller.modules({
+      devtools: function () {},
       router: Router({
         '/foo': {
           '/': 'foo',
@@ -163,15 +167,12 @@ module.exports = {
       })
     })
 
-    this.controller.getStore().reset()
     addressbar.value = '/foo'
     this.controller.getServices().router.trigger()
 
-    this.controller.getStore().reset()
     addressbar.value = '/foo/bar'
     this.controller.getServices().router.trigger()
 
-    this.controller.getStore().reset()
     addressbar.value = '/foo/baz'
     this.controller.getServices().router.trigger()
 
@@ -192,6 +193,7 @@ module.exports = {
 
     test.throws(function () {
       controller.modules({
+        devtools: function () {},
         router: Router({
           '/': 'test'
         })
@@ -209,6 +211,7 @@ module.exports = {
 
     test.throws(function () {
       controller.modules({
+        devtools: function () {},
         router: Router({
           '/': 'test.test'
         })
@@ -217,6 +220,7 @@ module.exports = {
 
     test.throws(function () {
       controller.modules({
+        devtools: function () {},
         router: Router({
           '/': 'test1.test'
         })
@@ -234,6 +238,7 @@ module.exports = {
 
     test.throws(function () {
       controller.modules({
+        devtools: function () {},
         router: Router({
           '/': 'test',
           '/:test': 'test'
@@ -332,6 +337,7 @@ module.exports = {
     })
 
     this.controller.modules({
+      devtools: function () {},
       router: Router({
         '/existing': 'existing',
         '/*': 'missing'
@@ -355,6 +361,7 @@ module.exports = {
     })
 
     this.controller.modules({
+      devtools: function () {},
       router: Router({
         '/existing': 'existing',
         '/*': 'missing'
@@ -364,28 +371,6 @@ module.exports = {
 
     test.equals(addressbar.pathname, '/existing')
     test.equals(window.location.lastChangedWith, 'pushState')
-    test.done()
-  },
-
-  'should remember while developing': function (test) {
-    this.controller.signals({
-      'test': [
-        function checkAction () { test.ok(true) }
-      ]
-    })
-
-    this.controller.modules({
-      router: Router({
-        '/:foo': 'test'
-      })
-    })
-
-    this.controller.getSignals().test({ foo: 'bar' })
-    addressbar.value = '/'
-
-    this.controller.getServices().router.trigger()
-    test.equals(addressbar.pathname, '/bar')
-
     test.done()
   },
 
