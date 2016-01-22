@@ -49,10 +49,6 @@ function Router (routesConfig, options) {
         url = url + '#/'
       }
 
-      if (controller.getStore().isRemembering()) {
-        return
-      }
-
       // check if url should be routed
       if (url.indexOf(options.baseUrl) === 0) {
         event && event.preventDefault()
