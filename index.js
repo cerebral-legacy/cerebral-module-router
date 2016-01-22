@@ -76,12 +76,6 @@ function Router (routesConfig, options) {
     })
 
     function trigger (url) {
-      // If developing, remember signals before
-      // route trigger
-      if (controller.getStore().getSignals().length) {
-        controller.getStore().rememberInitial(controller.getStore().getSignals().length - 1)
-      }
-
       addressbar.value = url || addressbar.value
       onUrlChange()
     }
