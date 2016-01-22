@@ -1,15 +1,17 @@
 {
   "name": "cerebral-module-router",
-  "version": "0.10.2",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
+    "pretest": "standard",
     "test": "nodeunit tests",
-    "coveralls": "istanbul cover nodeunit tests && cat ./coverage/lcov.info | coveralls"
+    "coverage": "istanbul cover nodeunit tests",
+    "postcoverage": "cat ./coverage/lcov.info | coveralls",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cerebral/cerebral-module-router.git"
+    "url": "https://github.com/cerebral/cerebral-module-router.git"
   },
   "keywords": [
     "router",
@@ -25,6 +27,17 @@
     "url": "https://github.com/cerebral/cerebral-module-router/issues"
   },
   "homepage": "https://github.com/cerebral/cerebral-module-router#readme",
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-customizable"
+    },
+    "ghooks": {
+      "commit-msg": "validate-commit-msg"
+    }
+  },
+  "release": {
+    "analyzeCommits": "./sr-prerelease.js"
+  },
   "dependencies": {
     "addressbar": "^1.0.1",
     "url-mapper": "^1.0.0"
@@ -32,8 +45,15 @@
   "devDependencies": {
     "cerebral": "^0.32.0",
     "cerebral-model-baobab": "^0.4.5",
+    "commitizen": "^2.5.0",
+    "conventional-changelog": "0.0.17",
     "coveralls": "^2.11.6",
+    "cz-customizable": "^2.7.0",
+    "ghooks": "^1.0.3",
     "istanbul": "^0.4.1",
-    "nodeunit": "^0.9.1"
+    "nodeunit": "^0.9.1",
+    "semantic-release": "^4.3.5",
+    "standard": "^5.4.1",
+    "validate-commit-msg": "^1.1.1"
   }
 }
