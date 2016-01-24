@@ -281,6 +281,19 @@ module.exports = {
     test.done()
   },
 
+  'should expose `getSignalUrl` method on router service': function (test) {
+    this.createRouteTest({
+      route: '/:param',
+      options: {
+        baseUrl: '/test',
+        onlyHash: true
+      }
+    })
+
+    test.equals(this.controller.getServices().router.getSignalUrl('match', { param: 'test' }), '/test#/test')
+    test.done()
+  },
+
   'should expose `getUrl` method for wrapped signal': function (test) {
     this.createRouteTest({
       route: '/:param',

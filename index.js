@@ -35,6 +35,7 @@ function Router (routesConfig, options) {
   var urlMapper = Mapper(options.mapper)
 
   function _getUrl (route, input) {
+    console.warn('Cerebral router - signal.getUrl() method is deprecated. Use service method getSignalUrl() instead')
     return options.baseUrl + urlMapper.stringify(route, input || {})
   }
 
@@ -90,6 +91,11 @@ function Router (routesConfig, options) {
 
       getUrl: function getUrl () {
         return addressbar.value.replace(addressbar.origin + options.baseUrl, '')
+      },
+
+      getSignalUrl: function getUrl (signalName, input) {
+        var route = signals[signalName].route
+        return options.baseUrl + urlMapper.stringify(route, input || {})
       },
 
       redirect: function redirect (url, params) {
