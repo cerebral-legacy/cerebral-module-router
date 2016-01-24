@@ -116,6 +116,8 @@ function Router (routesConfig, options) {
     addressbar.on('change', onUrlChange)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
+
+    if (options.autoTrigger) services.trigger()
   }
 }
 

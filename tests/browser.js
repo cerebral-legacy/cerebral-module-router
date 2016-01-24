@@ -180,6 +180,26 @@ module.exports = {
     test.done()
   },
 
+  'should trigger with autoTrigger option': function (test) {
+    this.controller.signals({
+      test: [
+        function checkAction () { test.ok(true) }
+      ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      }, {
+        autoTrigger: true
+      })
+    })
+
+    test.expect(1)
+    test.done()
+  },
+
   'should throw on missing routes': function (test) {
     test.throws(function () {
       Router()
