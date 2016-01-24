@@ -1,4 +1,6 @@
 var MODULE = 'cerebral-module-router'
+var isObject = require('lodash.isobject')
+var get = require('lodash.get')
 
 var Mapper = require('url-mapper')
 var addressbar
@@ -14,11 +16,15 @@ try {
   }
 }
 
+module.exports = Router
+
 function Router (routesConfig, options) {
   options = options || {}
 
   if (!routesConfig) {
     throw new Error("Cerebral router - Routes configuration wasn't provided.")
+  } else {
+    routesConfig = flattenConfig(routesConfig)
   }
 
   if (!options.baseUrl && options.onlyHash) {
@@ -26,21 +32,16 @@ function Router (routesConfig, options) {
     options.baseUrl = addressbar.pathname
   }
   options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '#' : '')
-
   var urlMapper = Mapper(options.mapper)
 
-  function createCallback (controller) {
-    var signals = controller.getSignals()
+  function _getUrl (route, input) {
+    return options.baseUrl + urlMapper.stringify(route, input || {})
+  }
 
-    // Create url based on direct signal input
-    function getUrl (route, input) {
-      return options.baseUrl + urlMapper.stringify(route.route, input || {})
-    }
+  return function init (module, controller) {
+    var signals = getRoutableSignals(routesConfig, controller.getSignals(), _getUrl)
 
-    var routes = wrapSignals(routesConfig, signals, getUrl)
-
-    return function onUrlChange (event) {
-      var matchedRoute
+    function onUrlChange (event) {
       var url = event ? event.target.value : addressbar.value
       url = url.replace(addressbar.origin, '')
 
@@ -52,53 +53,63 @@ function Router (routesConfig, options) {
       // check if url should be routed
       if (url.indexOf(options.baseUrl) === 0) {
         event && event.preventDefault()
-        matchedRoute = urlMapper.map(url.replace(options.baseUrl, ''), routes)
+        var map = urlMapper.map(url.replace(options.baseUrl, ''), routesConfig)
 
-        if (matchedRoute) {
-          matchedRoute.match(matchedRoute.values)
+        if (map) {
+          signals[map.match].signal(map.values)
         } else {
           console.warn('Cerebral router - No route matched "' + url + '" url, navigation was prevented. ' +
             'Please verify url or catch unmatched routes with a "/*" route.')
         }
       }
     }
-  }
 
-  return function init (module, controller) {
-    var onUrlChange = createCallback(controller)
-    addressbar.on('change', onUrlChange)
-    module.alias(MODULE)
-    module.services({
-      trigger: trigger,
-      redirect: redirect,
-      getUrl: getUrl,
-      detach: detach
-    })
-
-    function trigger (url) {
-      addressbar.value = url || addressbar.value
-      onUrlChange()
+    function onSignalTrigger (event) {
+      var signal = signals[event.signal.name]
+      if (signal) event.signal.isSync = true
     }
 
-    function redirect (url, params) {
-      params = params || {}
-      params.replace = (typeof params.replace === 'undefined') ? true : params.replace
-
-      addressbar.value = {
-        value: options.baseUrl + url,
-        replace: params.replace
+    function onSignalStart (event) {
+      var signal = signals[event.signal.name]
+      if (signal) {
+        var route = signal.route
+        var input = event.signal.input || {}
+        addressbar.value = options.baseUrl + urlMapper.stringify(route, input)
       }
-
-      onUrlChange()
     }
 
-    function getUrl () {
-      return addressbar.value.replace(addressbar.origin + options.baseUrl, '')
+    var services = {
+      trigger: function trigger (url) {
+        addressbar.value = url || addressbar.value
+        onUrlChange()
+      },
+
+      detach: function detach () {
+        addressbar.removeListener('change', onUrlChange)
+      },
+
+      getUrl: function getUrl () {
+        return addressbar.value.replace(addressbar.origin + options.baseUrl, '')
+      },
+
+      redirect: function redirect (url, params) {
+        params = params || {}
+        params.replace = (typeof params.replace === 'undefined') ? true : params.replace
+
+        addressbar.value = {
+          value: options.baseUrl + url,
+          replace: params.replace
+        }
+
+        onUrlChange()
+      }
     }
 
-    function detach () {
-      addressbar.removeListener('change', onUrlChange)
-    }
+    module.alias(MODULE)
+    module.services(services)
+    addressbar.on('change', onUrlChange)
+    controller.on('signalTrigger', onSignalTrigger)
+    controller.on('signalStart', onSignalStart)
   }
 }
 
@@ -113,69 +124,41 @@ Router.redirect = function (url, params) {
   return action
 }
 
-module.exports = Router
+function flattenConfig (config, prev, flatten) {
+  flatten = flatten || {}
+  prev = prev || ''
 
-function wrapSignals (routesConfig, signals, getUrl) {
-  // wrap bound signals and return routes map prepared for url-mapper
-  return Object.keys(routesConfig)
-    .map(function (route) {
-      return {
-        route: route,
-        signalName: routesConfig[route]
-      }
-    })
-    .reduce(function wrapSignal (routes, route) {
-      // recursive call for nested routes definition
-      if (typeof route.signalName === 'object') {
-        Object.keys(route.signalName).reduce(function (routes, nestedRoute) {
-          nestedRoute = {
-            route: route.route + nestedRoute,
-            signalName: route.signalName[nestedRoute]
-          }
+  Object.keys(config).forEach(function (key) {
+    if (isObject(config[key])) {
+      flattenConfig(config[key], prev + key, flatten)
+    } else {
+      flatten[prev + key] = config[key]
+    }
+  })
 
-          return wrapSignal(routes, nestedRoute)
-        }, routes)
+  return flatten
+}
 
-        return routes
-      }
+function getRoutableSignals (config, signals, getUrl) {
+  var routableSignals = {}
 
-      // retrieve actual signal by name
-      var signalPath = route.signalName.split('.')
-      var signalParent = signals
-      var signal
-      while (signalPath.length - 1) {
-        signalParent = signalParent[signalPath.shift()] || {}
-      }
-      signal = signalParent[signalPath]
-      if (typeof signal !== 'function') {
-        throw new Error('Cerebral router - The signal "' + route.signalName + '" for the route "' + route.route + '" does not exist.')
-      }
+  Object.keys(config).forEach(function (route) {
+    var signal = get(signals, config[route])
+    if (!signal) {
+      throw new Error('Cerebral router - The signal "' + config[route] +
+      '" for the route "' + route + '" does not exist.')
+    }
+    if (routableSignals[config[route]]) {
+      throw new Error('Cerebral router - The signal "' + config[route] +
+      '" has already been bound to route "' + route +
+      '". Create a new signal and reuse actions instead if needed.')
+    }
+    signal.getUrl = getUrl.bind(null, route)
+    routableSignals[config[route]] = {
+      route: route,
+      signal: signal
+    }
+  })
 
-      if (typeof signal.getUrl === 'function') {
-        throw new Error('Cerebral router - The signal "' + route.signalName + '" has already been bound to route. Create a new signal and reuse actions instead if needed.')
-      }
-
-      function wrappedSignal (payload, signalOptions) {
-        // set addressbar url on signal call
-        addressbar.value = getUrl(route, payload)
-
-        // Should always run sync
-        signalOptions = signalOptions || {}
-        signalOptions.isSync = true
-        signalOptions.isRouted = true
-        signal(payload, signalOptions)
-      }
-
-      // expose method for restoring url from params
-      wrappedSignal.getUrl = getUrl.bind(null, route)
-      wrappedSignal.chain = signal.chain
-
-      // pass wrapped signal to url-mapper routes
-      routes[route.route] = wrappedSignal
-
-      // replace signal on wrapped one in controller
-      signalParent[signalPath[0]] = wrappedSignal.sync = wrappedSignal
-
-      return routes
-    }, {})
+  return routableSignals
 }

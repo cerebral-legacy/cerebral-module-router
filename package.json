@@ -40,6 +40,8 @@
   },
   "dependencies": {
     "addressbar": "^1.0.1",
+    "lodash.get": "^4.0.0",
+    "lodash.isobject": "^3.0.2",
     "url-mapper": "^1.0.0"
   },
   "devDependencies": {
