@@ -398,6 +398,27 @@ module.exports = {
     test.done()
   },
 
+  'should run redirect async': function (test) {
+    test.expect(0)
+    this.controller.signals({
+      'noop': [],
+      'existing': [
+        function checkAction () { test.ok(true) }
+      ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/existing': 'existing',
+        '/*': 'noop'
+      })
+    })
+
+    this.controller.getServices().router.redirect('/existing')
+    test.done()
+  },
+
   'should warn if navigation prevented': function (test) {
     var routeTest = this.createRouteTest({
       route: '/',

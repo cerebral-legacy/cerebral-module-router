@@ -108,7 +108,7 @@ function Router (routesConfig, options) {
           replace: params.replace
         }
 
-        onUrlChange()
+        setTimeout(onUrlChange)
       }
     }
 
