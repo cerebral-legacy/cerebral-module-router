@@ -360,9 +360,14 @@ module.exports = {
   },
 
   'should replaceState on redirect by default': function (test) {
+    test.expect(2)
     this.controller.signals({
       'existing': [
-        function checkAction () { test.ok(true) }
+        function checkAction () {
+          test.equals(addressbar.pathname, '/existing')
+          test.equals(window.location.lastChangedWith, 'replaceState')
+          test.done()
+        }
       ],
       'missing': [
         redirect('/existing')
@@ -377,16 +382,17 @@ module.exports = {
       })
     })
     this.controller.getServices().router.trigger()
-
-    test.equals(addressbar.pathname, '/existing')
-    test.equals(window.location.lastChangedWith, 'replaceState')
-    test.done()
   },
 
   'should allow pushState on redirect': function (test) {
+    test.expect(2)
     this.controller.signals({
       'existing': [
-        function checkAction () { test.ok(true) }
+        function checkAction () {
+          test.equals(addressbar.pathname, '/existing')
+          test.equals(window.location.lastChangedWith, 'pushState')
+          test.done()
+        }
       ],
       'missing': [
         redirect('/existing', {replace: false})
@@ -401,10 +407,6 @@ module.exports = {
       })
     })
     this.controller.getServices().router.trigger()
-
-    test.equals(addressbar.pathname, '/existing')
-    test.equals(window.location.lastChangedWith, 'pushState')
-    test.done()
   },
 
   'should warn if navigation prevented': function (test) {
