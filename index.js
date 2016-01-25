@@ -109,6 +109,11 @@ function Router (routesConfig, options) {
         }
 
         setTimeout(onUrlChange)
+      },
+
+      redirectToSignal: function redirectToSignal (signalName, payload) {
+        var signal = get(signals, signalName).signal
+        if (signal) setTimeout(signal.bind(null, payload))
       }
     }
 

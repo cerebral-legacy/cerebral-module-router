@@ -419,6 +419,59 @@ module.exports = {
     test.done()
   },
 
+  'should allow redirect to signal': function (test) {
+    test.expect(2)
+    this.controller.signals({
+      'home': [],
+      'createClicked': [
+        function createEntity (args) {
+          var entityId = 42
+          args.services.router.redirectToSignal('detail', { id: entityId })
+        }
+      ],
+      'detail': [
+        function checkAction (args) {
+          test.equal(args.input.id, 42)
+          test.equal(addressbar.pathname, '/%3A42')
+          test.done()
+        }
+      ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'home',
+        '/:id': 'detail'
+      })
+    })
+
+    this.controller.getSignals().createClicked()
+  },
+
+  'should run redirectToSignal async': function (test) {
+    test.expect(0)
+    this.controller.signals({
+      'noop': [],
+      'test': [
+        function (args) {
+          test.ok(true)
+        }
+      ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'noop',
+        '/test': 'test'
+      })
+    })
+
+    this.controller.getServices().router.redirectToSignal('test')
+    test.done()
+  },
+
   'should warn if navigation prevented': function (test) {
     var routeTest = this.createRouteTest({
       route: '/',
