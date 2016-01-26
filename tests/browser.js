@@ -331,7 +331,7 @@ module.exports = {
     test.done()
   },
 
-  'should replaceState on redirect by default': function (test) {
+  'should provide redirect action factory': function (test) {
     this.controller.signals({
       'existing': [
         function checkAction () { test.ok(true) }
@@ -351,6 +351,27 @@ module.exports = {
     emit('/missing')
 
     test.equals(addressbar.pathname, '/existing')
+    test.done()
+  },
+
+  'should replaceState on redirect by default': function (test) {
+    this.controller.signals({
+      'existing': [
+        function checkAction () { test.ok(true) }
+      ],
+      'noop': []
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/existing': 'existing',
+        '/*': 'noop'
+      })
+    })
+
+    this.controller.getServices().router.redirect('/existing')
+    test.equals(addressbar.pathname, '/existing')
     test.equals(window.location.lastChangedWith, 'replaceState')
     test.done()
   },
@@ -360,20 +381,18 @@ module.exports = {
       'existing': [
         function checkAction () { test.ok(true) }
       ],
-      'missing': [
-        redirect('/existing', {replace: false})
-      ]
+      'noop': []
     })
 
     this.controller.modules({
       devtools: function () {},
       router: Router({
         '/existing': 'existing',
-        '/*': 'missing'
+        '/*': 'noop'
       })
     })
-    emit('/missing')
 
+    this.controller.getServices().router.redirect('/existing', { replace: false })
     test.equals(addressbar.pathname, '/existing')
     test.equals(window.location.lastChangedWith, 'pushState')
     test.done()
