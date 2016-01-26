@@ -25,6 +25,13 @@ var addressbar = require('addressbar')
 var Router = require('./../index.js')
 var redirect = Router.redirect
 
+function emit (url) {
+  addressbar.emit('change', {
+    preventDefault: function () {},
+    target: {value: addressbar.origin + url}
+  })
+}
+
 // TESTS
 module.exports = {
   setUp: function (cb) {
@@ -116,8 +123,8 @@ module.exports = {
         '/': 'test'
       })
     })
-    // sync run on trigger
-    this.controller.getServices().router.trigger()
+    // sync run on emit
+    emit('/')
 
     // sync run after wrapping
     this.controller.getSignals().test()
@@ -139,7 +146,7 @@ module.exports = {
         '/': 'test.test1.test2'
       })
     })
-    this.controller.getServices().router.trigger()
+    emit('/')
 
     test.expect(1)
     test.done()
@@ -167,14 +174,9 @@ module.exports = {
       })
     })
 
-    addressbar.value = '/foo'
-    this.controller.getServices().router.trigger()
-
-    addressbar.value = '/foo/bar'
-    this.controller.getServices().router.trigger()
-
-    addressbar.value = '/foo/baz'
-    this.controller.getServices().router.trigger()
+    emit('/foo')
+    emit('/foo/bar')
+    emit('/foo/baz')
 
     test.expect(3)
     test.done()
@@ -360,14 +362,9 @@ module.exports = {
   },
 
   'should replaceState on redirect by default': function (test) {
-    test.expect(2)
     this.controller.signals({
       'existing': [
-        function checkAction () {
-          test.equals(addressbar.pathname, '/existing')
-          test.equals(window.location.lastChangedWith, 'replaceState')
-          test.done()
-        }
+        function checkAction () { test.ok(true) }
       ],
       'missing': [
         redirect('/existing')
@@ -381,18 +378,17 @@ module.exports = {
         '/*': 'missing'
       })
     })
-    this.controller.getServices().router.trigger()
+    emit('/missing')
+
+    test.equals(addressbar.pathname, '/existing')
+    test.equals(window.location.lastChangedWith, 'replaceState')
+    test.done()
   },
 
   'should allow pushState on redirect': function (test) {
-    test.expect(2)
     this.controller.signals({
       'existing': [
-        function checkAction () {
-          test.equals(addressbar.pathname, '/existing')
-          test.equals(window.location.lastChangedWith, 'pushState')
-          test.done()
-        }
+        function checkAction () { test.ok(true) }
       ],
       'missing': [
         redirect('/existing', {replace: false})
@@ -406,7 +402,11 @@ module.exports = {
         '/*': 'missing'
       })
     })
-    this.controller.getServices().router.trigger()
+    emit('/missing')
+
+    test.equals(addressbar.pathname, '/existing')
+    test.equals(window.location.lastChangedWith, 'pushState')
+    test.done()
   },
 
   'should warn if navigation prevented': function (test) {
