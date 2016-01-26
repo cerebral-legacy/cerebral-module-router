@@ -44,6 +44,12 @@ function Router (routesConfig, options) {
 
   return function init (module, controller) {
     var signals = getRoutableSignals(routesConfig, controller.getSignals(), _getUrl)
+    var rememberedUrl
+
+    function setRememberedUrl () {
+      addressbar.value = rememberedUrl
+      rememberedUrl = null
+    }
 
     function onUrlChange (event) {
       var url = event ? event.target.value : addressbar.value
@@ -68,6 +74,17 @@ function Router (routesConfig, options) {
       }
     }
 
+    function onPredefinedSignal (event) {
+      var signal = signals[event.signal.name]
+      if (signal) {
+        if (!rememberedUrl) setTimeout(setRememberedUrl)
+
+        var route = signal.route
+        var input = event.signal.input || {}
+        rememberedUrl = options.baseUrl + urlMapper.stringify(route, input)
+      }
+    }
+
     function onSignalTrigger (event) {
       var signal = signals[event.signal.name]
       if (signal) {
@@ -86,7 +103,9 @@ function Router (routesConfig, options) {
     }
 
     function onModulesLoaded (event) {
-      setTimeout(onUrlChange)
+      if (!rememberedUrl) {
+        setTimeout(onUrlChange)
+      }
     }
 
     var services = {
@@ -130,6 +149,7 @@ function Router (routesConfig, options) {
     module.alias(MODULE)
     module.services(services)
     addressbar.on('change', onUrlChange)
+    controller.on('predefinedSignal', onPredefinedSignal)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
     controller.on('modulesLoaded', onModulesLoaded)

@@ -150,6 +150,37 @@ module.exports = {
     })
   },
 
+  'should not trigger on modulesLoaded if url was remembered': function (test) {
+    test.expect(1)
+    var controller = this.controller
+
+    this.controller.signals({
+      foo: [
+        function checkAction () { test.ok(true) }
+      ],
+      bar: [
+        function checkAction () { test.ok(true) }
+      ]
+    })
+
+    this.controller.on('modulesLoaded', function () {
+      setTimeout(function () {
+        test.equals(addressbar.pathname, '/foo')
+        test.done()
+      })
+    })
+
+    this.controller.modules({
+      router: Router({
+        '/foo': 'foo',
+        '/bar': 'bar'
+      }),
+      devtools: function () {
+        controller.emit('predefinedSignal', { signal: { name: 'foo' } })
+      }
+    })
+  },
+
   'should set isSync and isRouted flags on signal': function (test) {
     this.controller.signals({
       test: [ function () {} ]
