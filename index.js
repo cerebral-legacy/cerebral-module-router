@@ -160,7 +160,8 @@ function getRoutableSignals (config, signals, getUrl) {
     var signal = get(signals, config[route])
     if (!signal) {
       throw new Error('Cerebral router - The signal "' + config[route] +
-      '" for the route "' + route + '" does not exist.')
+      '" for the route "' + route + '" does not exist. ' +
+      'Make sure that ' + MODULE + 'loaded after all modules with routable signals.')
     }
     if (routableSignals[config[route]]) {
       throw new Error('Cerebral router - The signal "' + config[route] +
