@@ -133,6 +133,23 @@ module.exports = {
     test.done()
   },
 
+  'should trigger on modulesLoaded': function (test) {
+    this.controller.signals({
+      test: [
+        function checkAction () {
+          test.done()
+        }
+      ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      })
+    })
+  },
+
   'should set isSync and isRouted flags on signal': function (test) {
     this.controller.signals({
       test: [ function () {} ]

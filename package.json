@@ -46,7 +46,7 @@
     "url-mapper": "^1.0.0"
   },
   "devDependencies": {
-    "cerebral": "^0.33.3",
+    "cerebral": "^0.33.7",
     "cerebral-model-baobab": "^0.4.5",
     "commitizen": "^2.5.0",
     "conventional-changelog": "0.0.17",
@@ -60,6 +60,6 @@
     "validate-commit-msg": "^1.1.1"
   },
   "peerDependencies": {
-    "cerebral": "^0.33.3"
+    "cerebral": "^0.33.7"
   }
 }

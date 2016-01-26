@@ -85,6 +85,10 @@ function Router (routesConfig, options) {
       }
     }
 
+    function onModulesLoaded (event) {
+      setTimeout(onUrlChange)
+    }
+
     var services = {
       trigger: function trigger (url) {
         console.warn('Cerebral router - trigger service method is deprecated.')
@@ -128,6 +132,7 @@ function Router (routesConfig, options) {
     addressbar.on('change', onUrlChange)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
+    controller.on('modulesLoaded', onModulesLoaded)
   }
 }
 
