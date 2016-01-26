@@ -271,22 +271,6 @@ module.exports = {
     test.done()
   },
 
-  'should preserve sync method for wrapped signal': function (test) {
-    var controller = this.controller
-
-    this.createRouteTest({
-      route: '/:param'
-    })
-
-    test.doesNotThrow(function () {
-      controller.getSignals().match.sync({ param: 'test' })
-    })
-    test.throws(function () {
-      controller.getSignals().match.sync()
-    })
-    test.done()
-  },
-
   'should expose `getUrl` method on router service': function (test) {
     this.createRouteTest({
       route: '/:param',
@@ -326,20 +310,6 @@ module.exports = {
     })
 
     test.equals(this.controller.getSignals().match.getUrl({ param: 'test' }), '/test#/test')
-    test.done()
-  },
-
-  'should expose original `chains` for wrapped signal': function (test) {
-    this.createRouteTest({
-      route: '/:param',
-      options: {
-        baseUrl: '/test',
-        onlyHash: true
-      }
-    })
-
-    test.equals(typeof this.controller.getSignals().match.chain[0], 'function')
-    test.equals(this.controller.getSignals().match.chain[0].name, 'setMatch')
     test.done()
   },
 
