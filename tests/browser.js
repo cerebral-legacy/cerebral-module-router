@@ -133,6 +133,25 @@ module.exports = {
     test.done()
   },
 
+  'should set isSync and isRouted flags on signal': function (test) {
+    this.controller.signals({
+      test: [ function () {} ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      })
+    })
+
+    this.controller.once('signalStart', function (args) {
+      test.ok(args.signal.isSync)
+      test.ok(args.signal.isRouted)
+    })
+    test.done()
+  },
+
   'should run nested signal': function (test) {
     this.controller.signals({
       'test.test1.test2': [

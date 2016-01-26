@@ -67,7 +67,10 @@ function Router (routesConfig, options) {
 
     function onSignalTrigger (event) {
       var signal = signals[event.signal.name]
-      if (signal) event.signal.isSync = true
+      if (signal) {
+        event.signal.isSync = true
+        event.signal.isRouted = true
+      }
     }
 
     function onSignalStart (event) {
