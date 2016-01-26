@@ -22,10 +22,13 @@ function Router (routesConfig, options) {
   options = options || {}
 
   if (!routesConfig) {
-    throw new Error("Cerebral router - Routes configuration wasn't provided.")
+    throw new Error('Cerebral router - Routes configuration wasn\'t provided.')
   } else {
     routesConfig = flattenConfig(routesConfig)
   }
+
+  /* istanbul ignore if */
+  if (options.autoTrigger) console.warn('Cerebral router - autoTrigger option can be safely removed.')
 
   if (!options.baseUrl && options.onlyHash) {
     // autodetect baseUrl
@@ -125,8 +128,6 @@ function Router (routesConfig, options) {
     addressbar.on('change', onUrlChange)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
-
-    if (options.autoTrigger) services.trigger()
   }
 }
 
