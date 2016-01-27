@@ -159,7 +159,7 @@ function Router (routesConfig, options) {
     controller.on('predefinedSignal', onPredefinedSignal)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
-    controller.on('modulesLoaded', onModulesLoaded)
+    if (!options.preventAutostart) controller.on('modulesLoaded', onModulesLoaded)
   }
 }
 

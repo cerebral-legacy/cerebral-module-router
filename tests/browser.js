@@ -150,6 +150,30 @@ module.exports = {
     })
   },
 
+  'should not trigger on modulesLoaded if preventAutostart option was provided': function (test) {
+    test.expect(0)
+    this.controller.signals({
+      test: [
+        function checkAction () {
+          test.ok(true)
+        }
+      ]
+    })
+
+    this.controller.on('modulesLoaded', function () {
+      setTimeout(test.done)
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      }, {
+        preventAutostart: true
+      })
+    })
+  },
+
   'should not trigger on modulesLoaded if url was remembered': function (test) {
     test.expect(1)
     var controller = this.controller
