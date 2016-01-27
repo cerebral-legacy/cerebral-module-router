@@ -110,7 +110,7 @@ function Router (routesConfig, options) {
 
     var services = {
       trigger: function trigger (url) {
-        console.warn('Cerebral router - trigger service method is deprecated.')
+        console.warn('Cerebral router - trigger service method is about to be deprecated. Please fill an issue on github if you still need it.')
         addressbar.value = url || addressbar.value
         onUrlChange()
       },
