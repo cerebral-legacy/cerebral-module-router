@@ -518,6 +518,25 @@ module.exports = {
     this.controller.getSignals().createClicked()
   },
 
+  'should warn if trying redirect to signal not bound to route': function (test) {
+    test.expect(1)
+    this.controller.signals({
+      'home': [],
+      'test': [ function () { test.ok(true) } ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'home'
+      })
+    })
+
+    this.controller.getServices().router.redirectToSignal('test')
+    test.equal(this.warnMessage.length >= 0, true)
+    test.done()
+  },
+
   'should run redirectToSignal async': function (test) {
     test.expect(0)
     this.controller.signals({

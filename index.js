@@ -145,8 +145,12 @@ function Router (routesConfig, options) {
       },
 
       redirectToSignal: function redirectToSignal (signalName, payload) {
-        var signal = get(signals, signalName).signal
-        if (signal) setTimeout(signal.bind(null, payload))
+        var signal = get(signals, signalName)
+        if (signal) {
+          setTimeout(signal.signal.bind(null, payload))
+        } else {
+          console.warn('Cerebral router - signal ' + signalName + ' is not bound to route. Redirect wouldn\'t happen.')
+        }
       }
     }
 
