@@ -347,20 +347,6 @@ module.exports = {
     test.done()
   },
 
-  'should warn that `trigger` service method is deprecated': function (test) {
-    this.createRouteTest({
-      route: '/:param',
-      options: {
-        baseUrl: '/test',
-        onlyHash: true
-      }
-    })
-
-    this.controller.getServices().router.trigger()
-    test.equal(this.warnMessage.indexOf('deprecated') >= 0, true)
-    test.done()
-  },
-
   'should inform that `autoTrigger` could be removed': function (test) {
     Router({}, {
       autoTrigger: true
