@@ -27,7 +27,6 @@ function Router (routesConfig, options) {
     routesConfig = flattenConfig(routesConfig)
   }
 
-  /* istanbul ignore if */
   if (options.autoTrigger) console.warn('Cerebral router - autoTrigger option can be safely removed.')
 
   if (!options.baseUrl && options.onlyHash) {
