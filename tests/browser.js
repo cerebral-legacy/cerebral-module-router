@@ -160,12 +160,15 @@ module.exports = {
       ],
       bar: [
         function checkAction () { test.ok(true) }
+      ],
+      baz: [
+        function checkAction () { test.ok(true) }
       ]
     })
 
     this.controller.on('modulesLoaded', function () {
       setTimeout(function () {
-        test.equals(addressbar.pathname, '/foo')
+        test.equals(addressbar.pathname, '/bar')
         test.done()
       })
     })
@@ -177,6 +180,8 @@ module.exports = {
       }),
       devtools: function () {
         controller.emit('predefinedSignal', { signal: { name: 'foo' } })
+        controller.emit('predefinedSignal', { signal: { name: 'baz' } })
+        controller.emit('predefinedSignal', { signal: { name: 'bar' } })
       }
     })
   },
