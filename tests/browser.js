@@ -341,14 +341,16 @@ module.exports = {
 
   'should expose `getSignalUrl` method on router service': function (test) {
     this.createRouteTest({
-      route: '/:param',
+      route: '/',
       options: {
         baseUrl: '/test',
+        mapper: { query: true },
         onlyHash: true
       }
     })
 
-    test.equals(this.controller.getServices().router.getSignalUrl('match', { param: 'test' }), '/test#/test')
+    test.equals(this.controller.getServices().router.getSignalUrl('match'), '/test#/')
+    test.equals(this.controller.getServices().router.getSignalUrl('match', { param: 'test' }), '/test#/?param=test')
     test.done()
   },
 
