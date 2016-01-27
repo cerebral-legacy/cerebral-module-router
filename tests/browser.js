@@ -347,6 +347,23 @@ module.exports = {
     test.done()
   },
 
+  'should `getSignalUrl` service method return false for unbound signal': function (test) {
+    this.controller.signals({
+      'test': [ function noop () {} ],
+      'unbound': [ function noop () {} ]
+    })
+
+    this.controller.modules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      })
+    })
+
+    test.equals(this.controller.getServices().router.getSignalUrl('unbound'), false)
+    test.done()
+  },
+
   'should expose `getUrl` method for wrapped signal': function (test) {
     this.createRouteTest({
       route: '/:param',

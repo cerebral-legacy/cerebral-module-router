@@ -123,9 +123,13 @@ function Router (routesConfig, options) {
         return addressbar.value.replace(addressbar.origin + options.baseUrl, '')
       },
 
-      getSignalUrl: function getUrl (signalName, input) {
-        var route = signals[signalName].route
-        return options.baseUrl + urlMapper.stringify(route, input || {})
+      getSignalUrl: function getSignalUrl (signalName, input) {
+        if (signals[signalName]) {
+          var route = signals[signalName].route
+          return options.baseUrl + urlMapper.stringify(route, input || {})
+        } else {
+          return false
+        }
       },
 
       redirect: function redirect (url, params) {
