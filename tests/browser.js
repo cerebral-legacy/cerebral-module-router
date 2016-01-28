@@ -135,15 +135,54 @@ module.exports = {
 
   'should trigger on modulesLoaded': function (test) {
     this.controller.signals({
-      test: [
-        function checkAction () {
-          test.done()
-        }
-      ]
+      test: [ function checkAction () { test.done() } ]
     })
 
     this.controller.modules({
       devtools: function () {},
+      router: Router({
+        '/': 'test'
+      })
+    })
+  },
+
+  'should delay auto trigger if there is running signals': function (test) {
+    var controller = this.controller
+
+    controller.signals({
+      test: [ function checkAction () { test.done() } ],
+      init1: [
+        [ function asyncAction (args) {
+          setTimeout(function () {
+            args.output()
+          }, 50)
+        } ]
+      ],
+      init2: [
+        [ function asyncAction (args) {
+          setTimeout(function () {
+            args.output()
+          }, 100)
+        } ]
+      ]
+    })
+
+    controller.once('signalEnd', function (args) {
+      test.notEqual(args.signal.name, 'test')
+      args.signal.name === 'init2' &&
+        controller.on('signalStart', function (args) {
+          test.equals(args.signal.name, 'test')
+        })
+    })
+
+    controller.modules({
+      devtools: function () {},
+      app: function (modules, controller) {
+        controller.on('modulesLoaded', function () {
+          controller.getSignals().init1({}, { isSync: true })
+          controller.getSignals().init2({}, { isSync: true })
+        })
+      },
       router: Router({
         '/': 'test'
       })
@@ -178,26 +217,20 @@ module.exports = {
     test.expect(1)
     var controller = this.controller
 
-    this.controller.signals({
-      foo: [
-        function checkAction () { test.ok(true) }
-      ],
-      bar: [
-        function checkAction () { test.ok(true) }
-      ],
-      baz: [
-        function checkAction () { test.ok(true) }
-      ]
+    controller.signals({
+      foo: [ function checkAction () { test.ok(true) } ],
+      bar: [ function checkAction () { test.ok(true) } ],
+      baz: [ function checkAction () { test.ok(true) } ]
     })
 
-    this.controller.on('modulesLoaded', function () {
+    controller.on('modulesLoaded', function () {
       setTimeout(function () {
         test.equals(addressbar.pathname, '/bar')
         test.done()
       })
     })
 
-    this.controller.modules({
+    controller.modules({
       router: Router({
         '/foo': 'foo',
         '/bar': 'bar'
@@ -207,6 +240,47 @@ module.exports = {
         controller.emit('predefinedSignal', { signal: { name: 'baz' } })
         controller.emit('predefinedSignal', { signal: { name: 'bar' } })
       }
+    })
+  },
+
+  'should not run delayed trigger if url was remembered': function (test) {
+    test.expect(1)
+    var controller = this.controller
+
+    controller.signals({
+      test: [ function checkAction () { test.ok(true) } ],
+      foo: [ function checkAction () { test.ok(true) } ],
+      init1: [
+        [ function asyncAction (args) {
+          setTimeout(function () {
+            args.output()
+          }, 50)
+        } ]
+      ]
+    })
+
+    controller.on('modulesLoaded', function () {
+      setTimeout(function () {
+        test.equals(addressbar.pathname, '/foo')
+        test.done()
+      }, 100)
+    })
+
+    controller.modules({
+      devtools: function () {
+        controller.on('modulesLoaded', function () {
+          controller.emit('predefinedSignal', { signal: { name: 'foo' } })
+        })
+      },
+      app: function (modules, controller) {
+        controller.on('modulesLoaded', function () {
+          controller.getSignals().init1({}, { isSync: true })
+        })
+      },
+      router: Router({
+        '/': 'test',
+        '/foo': 'foo'
+      })
     })
   },
 

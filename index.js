@@ -44,6 +44,7 @@ function Router (routesConfig, options) {
   return function init (module, controller) {
     var signals = getRoutableSignals(routesConfig, controller.getSignals(), _getUrl)
     var rememberedUrl
+    var initialSignals = []
 
     function setRememberedUrl () {
       addressbar.value = rememberedUrl
@@ -93,6 +94,10 @@ function Router (routesConfig, options) {
     }
 
     function onSignalStart (event) {
+      if (Array.isArray(initialSignals)) {
+        initialSignals.push(event.signal)
+      }
+
       var signal = signals[event.signal.name]
       if (signal) {
         var route = signal.route
@@ -101,9 +106,23 @@ function Router (routesConfig, options) {
       }
     }
 
+    function onSignalEnd (event) {
+      if (Array.isArray(initialSignals)) {
+        initialSignals.splice(initialSignals.indexOf(event.signal), 1)
+
+        if (initialSignals.length === 0) {
+          controller.removeListener('signalEnd', onSignalEnd)
+          initialSignals = null
+          if (typeof rememberedUrl === 'undefined') setTimeout(onUrlChange)
+        }
+      }
+    }
+
     function onModulesLoaded (event) {
-      if (!rememberedUrl) {
+      if (rememberedUrl) return
+      if (Array.isArray(initialSignals) && initialSignals.length === 0) {
         setTimeout(onUrlChange)
+        initialSignals = null
       }
     }
 
@@ -158,6 +177,7 @@ function Router (routesConfig, options) {
     controller.on('predefinedSignal', onPredefinedSignal)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
+    controller.on('signalEnd', onSignalEnd)
     if (!options.preventAutostart) controller.on('modulesLoaded', onModulesLoaded)
   }
 }
