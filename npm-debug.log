@@ -1,0 +1,42 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/home/ubuntu/.nvm/versions/node/v4.2.1/bin/node',
+1 verbose cli   '/home/ubuntu/.nvm/versions/node/v4.2.1/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'coverage' ]
+2 info using npm@2.14.7
+3 info using node@v4.2.1
+4 verbose run-script [ 'precoverage', 'coverage', 'postcoverage' ]
+5 info precoverage cerebral-module-router@0.0.0-semantically-released
+6 info coverage cerebral-module-router@0.0.0-semantically-released
+7 verbose unsafe-perm in lifecycle true
+8 info postcoverage cerebral-module-router@0.0.0-semantically-released
+9 verbose unsafe-perm in lifecycle true
+10 info cerebral-module-router@0.0.0-semantically-released Failed to exec postcoverage script
+11 verbose stack Error: cerebral-module-router@0.0.0-semantically-released postcoverage: `cat ./coverage/lcov.info | coveralls`
+11 verbose stack Exit status 1
+11 verbose stack     at EventEmitter.<anonymous> (/home/ubuntu/.nvm/versions/node/v4.2.1/lib/node_modules/npm/lib/utils/lifecycle.js:214:16)
+11 verbose stack     at emitTwo (events.js:87:13)
+11 verbose stack     at EventEmitter.emit (events.js:172:7)
+11 verbose stack     at ChildProcess.<anonymous> (/home/ubuntu/.nvm/versions/node/v4.2.1/lib/node_modules/npm/lib/utils/spawn.js:24:14)
+11 verbose stack     at emitTwo (events.js:87:13)
+11 verbose stack     at ChildProcess.emit (events.js:172:7)
+11 verbose stack     at maybeClose (internal/child_process.js:818:16)
+11 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:211:5)
+12 verbose pkgid cerebral-module-router@0.0.0-semantically-released
+13 verbose cwd /home/ubuntu/workspace
+14 error Linux 4.2.0-c9
+15 error argv "/home/ubuntu/.nvm/versions/node/v4.2.1/bin/node" "/home/ubuntu/.nvm/versions/node/v4.2.1/bin/npm" "run" "coverage"
+16 error node v4.2.1
+17 error npm  v2.14.7
+18 error code ELIFECYCLE
+19 error cerebral-module-router@0.0.0-semantically-released postcoverage: `cat ./coverage/lcov.info | coveralls`
+19 error Exit status 1
+20 error Failed at the cerebral-module-router@0.0.0-semantically-released postcoverage script 'cat ./coverage/lcov.info | coveralls'.
+20 error This is most likely a problem with the cerebral-module-router package,
+20 error not with npm itself.
+20 error Tell the author that this fails on your system:
+20 error     cat ./coverage/lcov.info | coveralls
+20 error You can get their info via:
+20 error     npm owner ls cerebral-module-router
+20 error There is likely additional logging output above.
+21 verbose exit [ 1, true ]
