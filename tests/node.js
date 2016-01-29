@@ -14,13 +14,13 @@ var Router = require('./../index.js')
 
 module.exports['should work in node.js'] = function (test) {
   var controller = Controller(Model({}))
-  controller.signals({
+  controller.addSignals({
     'test': [
       function checkAction (input) { test.ok(true) }
     ]
   })
 
-  controller.modules({
+  controller.addModules({
     router: Router({
       '/test': 'test'
     })

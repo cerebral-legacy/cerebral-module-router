@@ -47,7 +47,7 @@ module.exports = {
       var defaultPrevented = false
       var routerOptions = options.options
 
-      controller.signals({
+      controller.addSignals({
         match: [
           function setMatch () { doesMatch = true }
         ]
@@ -62,7 +62,7 @@ module.exports = {
         addressbar.value = '/'
       }
 
-      controller.modules({
+      controller.addModules({
         devtools: function () {},
         router: Router(routes, routerOptions || {})
       })
@@ -108,7 +108,7 @@ module.exports = {
   },
 
   'should run signal synchronously': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       test: [
         function checkAction () { test.ok(true) }
       ]
@@ -117,7 +117,7 @@ module.exports = {
     // async run before wrapping
     this.controller.getSignals().test()
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'test'
@@ -134,11 +134,11 @@ module.exports = {
   },
 
   'should trigger on modulesLoaded': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       test: [ function checkAction () { test.done() } ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'test'
@@ -149,7 +149,7 @@ module.exports = {
   'should delay auto trigger if there is running signals': function (test) {
     var controller = this.controller
 
-    controller.signals({
+    controller.addSignals({
       test: [ function checkAction () { test.done() } ],
       init1: [
         [ function asyncAction (args) {
@@ -175,7 +175,7 @@ module.exports = {
         })
     })
 
-    controller.modules({
+    controller.addModules({
       devtools: function () {},
       app: function (modules, controller) {
         controller.on('modulesLoaded', function () {
@@ -191,7 +191,7 @@ module.exports = {
 
   'should not trigger on modulesLoaded if preventAutostart option was provided': function (test) {
     test.expect(0)
-    this.controller.signals({
+    this.controller.addSignals({
       test: [
         function checkAction () {
           test.ok(true)
@@ -203,7 +203,7 @@ module.exports = {
       setTimeout(test.done)
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'test'
@@ -217,7 +217,7 @@ module.exports = {
     test.expect(1)
     var controller = this.controller
 
-    controller.signals({
+    controller.addSignals({
       foo: [ function checkAction () { test.ok(true) } ],
       bar: [ function checkAction () { test.ok(true) } ],
       baz: [ function checkAction () { test.ok(true) } ]
@@ -230,7 +230,7 @@ module.exports = {
       })
     })
 
-    controller.modules({
+    controller.addModules({
       router: Router({
         '/foo': 'foo',
         '/bar': 'bar'
@@ -247,7 +247,7 @@ module.exports = {
     test.expect(1)
     var controller = this.controller
 
-    controller.signals({
+    controller.addSignals({
       test: [ function checkAction () { test.ok(true) } ],
       foo: [ function checkAction () { test.ok(true) } ],
       init1: [
@@ -266,7 +266,7 @@ module.exports = {
       }, 100)
     })
 
-    controller.modules({
+    controller.addModules({
       devtools: function () {
         controller.on('modulesLoaded', function () {
           controller.emit('predefinedSignal', { signal: { name: 'foo' } })
@@ -285,11 +285,11 @@ module.exports = {
   },
 
   'should set isSync and isRouted flags on signal': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       test: [ function () {} ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'test'
@@ -304,13 +304,13 @@ module.exports = {
   },
 
   'should run nested signal': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       'test.test1.test2': [
         function checkAction () { test.ok(true) }
       ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'test.test1.test2'
@@ -325,13 +325,13 @@ module.exports = {
   'should support nested route definitions': function (test) {
     function checkAction () { test.ok(true) }
 
-    this.controller.signals({
+    this.controller.addSignals({
       'foo': [ checkAction ],
       'bar': [ checkAction ],
       'baz': [ checkAction ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/foo': {
@@ -364,7 +364,7 @@ module.exports = {
     var controller = this.controller
 
     test.throws(function () {
-      controller.modules({
+      controller.addModules({
         devtools: function () {},
         router: Router({
           '/': 'test'
@@ -377,12 +377,12 @@ module.exports = {
 
   'should throw on missing nested signal': function (test) {
     var controller = this.controller
-    this.controller.signals({
+    this.controller.addSignals({
       'test': [ function noop () {} ]
     })
 
     test.throws(function () {
-      controller.modules({
+      controller.addModules({
         devtools: function () {},
         router: Router({
           '/': 'test.test'
@@ -391,7 +391,7 @@ module.exports = {
     })
 
     test.throws(function () {
-      controller.modules({
+      controller.addModules({
         devtools: function () {},
         router: Router({
           '/': 'test1.test'
@@ -404,12 +404,12 @@ module.exports = {
 
   'should throw on duplicate signal': function (test) {
     var controller = this.controller
-    this.controller.signals({
+    this.controller.addSignals({
       'test': [ function noop () {} ]
     })
 
     test.throws(function () {
-      controller.modules({
+      controller.addModules({
         devtools: function () {},
         router: Router({
           '/': 'test',
@@ -462,12 +462,12 @@ module.exports = {
   },
 
   'should `getSignalUrl` service method return false for unbound signal': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       'test': [ function noop () {} ],
       'unbound': [ function noop () {} ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'test'
@@ -495,7 +495,7 @@ module.exports = {
   },
 
   'should not change url for regular signal call': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       'test': [
         function (arg) { arg.state.set(['foo'], 'bar') }
       ]
@@ -513,7 +513,7 @@ module.exports = {
   },
 
   'should provide redirect action factory': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       'existing': [
         function checkAction () { test.ok(true) }
       ],
@@ -522,7 +522,7 @@ module.exports = {
       ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/existing': 'existing',
@@ -536,14 +536,14 @@ module.exports = {
   },
 
   'should replaceState on redirect by default': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       'existing': [
         function checkAction () { test.ok(true) }
       ],
       'noop': []
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/existing': 'existing',
@@ -558,14 +558,14 @@ module.exports = {
   },
 
   'should allow pushState on redirect': function (test) {
-    this.controller.signals({
+    this.controller.addSignals({
       'existing': [
         function checkAction () { test.ok(true) }
       ],
       'noop': []
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/existing': 'existing',
@@ -581,14 +581,14 @@ module.exports = {
 
   'should run redirect async': function (test) {
     test.expect(0)
-    this.controller.signals({
+    this.controller.addSignals({
       'noop': [],
       'existing': [
         function checkAction () { test.ok(true) }
       ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/existing': 'existing',
@@ -602,7 +602,7 @@ module.exports = {
 
   'should allow redirect to signal': function (test) {
     test.expect(2)
-    this.controller.signals({
+    this.controller.addSignals({
       'home': [],
       'createClicked': [
         function createEntity (args) {
@@ -619,7 +619,7 @@ module.exports = {
       ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'home',
@@ -632,12 +632,12 @@ module.exports = {
 
   'should warn if trying redirect to signal not bound to route': function (test) {
     test.expect(1)
-    this.controller.signals({
+    this.controller.addSignals({
       'home': [],
       'test': [ function () { test.ok(true) } ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'home'
@@ -651,7 +651,7 @@ module.exports = {
 
   'should run redirectToSignal async': function (test) {
     test.expect(0)
-    this.controller.signals({
+    this.controller.addSignals({
       'noop': [],
       'test': [
         function (args) {
@@ -660,7 +660,7 @@ module.exports = {
       ]
     })
 
-    this.controller.modules({
+    this.controller.addModules({
       devtools: function () {},
       router: Router({
         '/': 'noop',

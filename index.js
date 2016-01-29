@@ -172,7 +172,7 @@ function Router (routesConfig, options) {
     }
 
     module.alias(MODULE)
-    module.services(services)
+    module.addServices(services)
     addressbar.on('change', onUrlChange)
     controller.on('predefinedSignal', onPredefinedSignal)
     controller.on('signalTrigger', onSignalTrigger)
