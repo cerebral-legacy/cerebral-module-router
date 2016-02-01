@@ -996,23 +996,24 @@ controller.addModules({
 			<h3 id="how-it-works">How it works</h3>
 			<p>The Cerebral Router is one of the least invasive routers out there.
 				You can attach the router module to already written cerebral application and it will just work.
-			Though we are making few considerations:</p>
+			And you will be able to disable router completely in environments where you do not need it at all(eg, React Native app).</p>
+			<p>Though we are making few considerations:</p>
 			<ul>
-				<li>Your app will prepare initial state either during server side rendering or within signals ran in sync with <code>modulesLoaded</code> event.</li>
 				<li>Signal bound to route should be treated as potential entry point. Make sure that your signal would be able to run on app start.</li>
+				<li>Your app will prepare initial state either during server side rendering or within signals ran in sync with <code>modulesLoaded</code> event.</li>
 			</ul>
-			<h4 id="addressbar-updates-while-navigating-an-app-">Addressbar updates while navigating an app.</h4>
+			<h4 id="addressbar-updates-while-navigating-an-app">Addressbar updates while navigating an app</h4>
 			<p>Router listens to <code>signalTrigger</code> and <code>signalStart</code> events.
 				Addressbar will be updated if signal is bound to route in config.
 			Router uses <a href="https://github.com/cerebral/url-mapper">url-mapper&#39;s</a> <code>stringify</code> method to set from given route and signal payload.</p>
-			<h4 id="trigger-correspondent-signal-with-payload-while-normal-app-startup-">Trigger correspondent signal with payload while normal app startup.</h4>
+			<h4 id="trigger-correspondent-signal-with-payload-while-normal-app-startup">Trigger correspondent signal with payload while normal app startup</h4>
 			<p>Router listens to <code>modulesLoaded</code> event and schedules correspondent signal trigger if there was no predefined signal execution (see below).
 				Router uses url-mapper&#39;s map method to get matched signal and payload to pass.
 			Matched signal trigger would be delayed until signals started by other modules on <code>modulesLoaded</code> event is finished, if any.</p>
 			<h4 id="trigger-correspondent-on-history-traversal-back-and-forward-navigation-">Trigger correspondent on history traversal (back and forward navigation).</h4>
 			<p>Router listens history traversal events using <a href="https://github.com/cerebral/addressbar">addressbar</a> library.
 			It would trigger matched signal if url has changed.</p>
-			<h4 id="just-works-with-devtools-time-traveling-and-recorder-">Just works with <code>devtools</code> time traveling and <code>recorder</code>.</h4>
+			<h4 id="just-works-with-devtools-time-traveling-and-recorder-">Just works with <code>devtools</code> time traveling and <code>recorder</code></h4>
 			<p>Both <a href="(https://github.com/cerebral/cerebral-module-devtools"><code>devtools</code></a>) and <a href="https://github.com/cerebral/cerebral-module-recorder"><code>recorder</code></a> uses internal <code>cerebral</code> mechanism of predefined signal run.
 				Router will update <code>addressbar</code> if any predefined signal was bound to route.
 			So your <code>addressbar</code> will be kept in sync even using recordings and time travel debugging.</p>
@@ -1067,7 +1068,26 @@ controller.addModules({
 }
 </code></pre>
 			<h3 id="preserving-payload-type">Preserving payload type</h3>
+			<p>We suppose that router usage should be safe.
+				We can&#39;t be sure that nothing will break if we pass <code>String</code> instead of <code>Number</code> or <code>Boolean</code> to signal payload when triggering signal from url.
+				Thats why router will preserve types when stringifying payload to url.
+				But it can cause &quot;unexpected&quot; appear of <code>%3A</code> entries in url.
+				Cast your payload param that appears in url path part to string if you do not want to <code>%3A</code> to appear in url.
+			It is your responsibility to make sure that your action deal with <code>String</code> as you expected.</p>
+			<p>Given that you still be able to disable router at any time.</p>
+			<h3 id="queries-powered-with-urlon">Queries powered with urlon</h3>
+			<p>Path-to-regexp is pretty powerfull, but sometimes you want your url would hold more information to pass your app.
+				Usually it is done through queries. Using the same considerations as in previous point we decided that it must preserve types.
+				We can enable query support with <a href="https://github.com/vjeux/URLON"><code>urlon</code></a> super powers of stringify/pasrse any JSON compatible object (any payload can be passed to signal, as fact).
+				Just pass <code>mapper: { query: true }</code> to router options and any payload not defined in path part would be stringified to query part.
+			It is not easy to construct <code>urlon</code> queries by hands, but you never had to. Just keep reading.</p>
 			<h3 id="create-links">Create links</h3>
+			<p>Most times you need to have a links in app. It enables sharing url, opening url in new tab, etc.
+				You can use <a href="http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.routerservice.getsignalurl"><code>getSignalUrl</code></a> method exposed by router to avoid hardcoding urls within app.
+				Please follow your view package documentation to see if it already have component to make a links.
+			Fell free to create an issue on that package otherwise.</p>
+			<p>Link component will fallback to <code>onClick</code> event handler if router is absent.
+			So you can disable router at any time even if you are using links.</p>
 		</div>
 		<div style="position:relative;"><a name="typedoc-main-index" class="tsd-anchor"></a></div>
 		<section class="tsd-panel-group tsd-index-group">
