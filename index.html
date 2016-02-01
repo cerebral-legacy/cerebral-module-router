@@ -1005,7 +1005,7 @@ controller.addModules({
 			<h4 id="addressbar-updates-while-navigating-an-app">Addressbar updates while navigating an app</h4>
 			<p>Router listens to <code>signalTrigger</code> and <code>signalStart</code> events.
 				Addressbar will be updated if signal is bound to route in config.
-			Router uses <a href="https://github.com/cerebral/url-mapper">url-mapper&#39;s</a> <code>stringify</code> method to set from given route and signal payload.</p>
+			Router uses <a href="https://github.com/cerebral/url-mapper">url-mapper&#39;s</a> <code>stringify</code> method to get url from given route and signal payload.</p>
 			<h4 id="trigger-correspondent-signal-with-payload-while-normal-app-startup">Trigger correspondent signal with payload while normal app startup</h4>
 			<p>Router listens to <code>modulesLoaded</code> event and schedules correspondent signal trigger if there was no predefined signal execution (see below).
 				Router uses url-mapper&#39;s map method to get matched signal and payload to pass.
