@@ -992,36 +992,30 @@ controller.addModules({
   })
 );
 </code></pre>
+			<h3 id="-api-documentation-http-cerebral-github-io-cerebral-module-router-index-html-_index_d_-router-"><a href="http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.router">API documentation</a></h3>
 			<h3 id="how-it-works">How it works</h3>
-			<p>Cerebral Router Module is lest invasive router, I believe.
-			You can attach router module to already written cerebral application and it would just work.</p>
+			<p>The Cerebral Router is one of the least invasive routers out there.
+				You can attach the router module to already written cerebral application and it will just work.
+			Though we are making few considerations:</p>
 			<ul>
-				<li>addressbar update while navigating an app. </li>
-			</ul>
-			<p>Router listens <code>signalTrigger</code> and <code>signalStart</code> events.
-				Addressbar would be updated if signal was bound to route in config.
-			Router uses <a href="https://github.com/cerebral/url-mapper">url-mapper&#39;s</a> <code>stringify</code> method to get url to set from given route and signal payload.</p>
-			<ul>
-				<li>trigger correspondent signal with payload while normal app startup. </li>
-			</ul>
-			<p>Router listens <code>modulesLoaded</code> event and schedules correspondent signal trigger if there was not predefined signal execution (see below).
-				Router uses url-mapper&#39;s map method to get matched signal and payload to pass.
-			Matched signal trigger would be delayed until signals started by other modules on <code>modulesLoaded</code> event would finish if any.</p>
-			<ul>
-				<li>trigger correspondent on history traversal (back and forward navigation). </li>
-			</ul>
-			<p>Router listens history traversal events using <a href="https://github.com/cerebral/addressbar">addressbar</a> library.
-			It would trigger matched signal if url has changed.</p>
-			<ul>
-				<li>just works with <a href="https://github.com/cerebral/cerebral-module-devtools">devtools</a> time traveling and <a href="https://github.com/cerebral/cerebral-module-recorder">recorder</a>. </li>
-			</ul>
-			<p>Both <code>devtools</code> and <code>recorder</code> uses internal <code>cerebral</code> mechanism of predefined signal run.
-				Router will update <code>addressbar</code> if any predefined signal was bound to route.
-			So your <code>addressbar</code> will be kept in sync even using recordings and time travel debugging.</p>
-			<p>Though we are making few considerations:</p>
-			<ul>
+				<li>Your app will prepare initial state either during server side rendering or within signals ran in sync with <code>modulesLoaded</code> event.</li>
 				<li>Signal bound to route should be treated as potential entry point. Make sure that your signal would be able to run on app start.</li>
 			</ul>
+			<h4 id="addressbar-updates-while-navigating-an-app-">Addressbar updates while navigating an app.</h4>
+			<p>Router listens to <code>signalTrigger</code> and <code>signalStart</code> events.
+				Addressbar will be updated if signal is bound to route in config.
+			Router uses <a href="https://github.com/cerebral/url-mapper">url-mapper&#39;s</a> <code>stringify</code> method to set from given route and signal payload.</p>
+			<h4 id="trigger-correspondent-signal-with-payload-while-normal-app-startup-">Trigger correspondent signal with payload while normal app startup.</h4>
+			<p>Router listens to <code>modulesLoaded</code> event and schedules correspondent signal trigger if there was no predefined signal execution (see below).
+				Router uses url-mapper&#39;s map method to get matched signal and payload to pass.
+			Matched signal trigger would be delayed until signals started by other modules on <code>modulesLoaded</code> event is finished, if any.</p>
+			<h4 id="trigger-correspondent-on-history-traversal-back-and-forward-navigation-">Trigger correspondent on history traversal (back and forward navigation).</h4>
+			<p>Router listens history traversal events using <a href="https://github.com/cerebral/addressbar">addressbar</a> library.
+			It would trigger matched signal if url has changed.</p>
+			<h4 id="just-works-with-devtools-time-traveling-and-recorder-">Just works with <code>devtools</code> time traveling and <code>recorder</code>.</h4>
+			<p>Both <a href="(https://github.com/cerebral/cerebral-module-devtools"><code>devtools</code></a>) and <a href="https://github.com/cerebral/cerebral-module-recorder"><code>recorder</code></a> uses internal <code>cerebral</code> mechanism of predefined signal run.
+				Router will update <code>addressbar</code> if any predefined signal was bound to route.
+			So your <code>addressbar</code> will be kept in sync even using recordings and time travel debugging.</p>
 			<h3 id="routes-config">Routes config</h3>
 			<p>Routes config is object passed as first argument.
 				Use <a href="https://github.com/pillarjs/path-to-regexp"><code>path-to-regexp</code></a> format routes as keys and signal name to bound as value.
@@ -1036,7 +1030,42 @@ controller.addModules({
 })
 </code></pre>
 			<h3 id="application-startup">Application startup</h3>
-			<p>Recommended way of preparing initial state on application startup</p>
+			<p>As said before router will autodetect any signal ran in sync with <code>modulesLoaded</code> event.
+				Router will not trigger if there was remembering of state occured before <code>modulesLoaded</code> event.
+			We strongly recommend not to run your initial signals in that case too.</p>
+			<p>You can set some <code>isLoaded</code> flag in state store within initial signal and chech it before run.
+			Or remove <code>modulesLoaded</code> event listener if there was <code>predefinedSignal</code> emitted.</p>
+			<pre><code class="lang-js"><span class="hljs-keyword">import</span> NewTodo <span class="hljs-keyword">from</span> <span class="hljs-string">'./modules/NewTodo'</span>;
+<span class="hljs-keyword">import</span> List <span class="hljs-keyword">from</span> <span class="hljs-string">'./modules/List'</span>;
+<span class="hljs-keyword">import</span> Footer <span class="hljs-keyword">from</span> <span class="hljs-string">'./modules/Footer'</span>;
+
+<span class="hljs-keyword">import</span> appStarted <span class="hljs-keyword">from</span> <span class="hljs-string">'./signals/appStarted'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> (options = {}) =&gt; {
+  <span class="hljs-keyword">return</span> (<span class="hljs-built_in">module</span>, controller) =&gt; {
+
+    <span class="hljs-built_in">module</span>.modules({
+      <span class="hljs-keyword">new</span>: NewTodo(),
+      list: List(),
+      footer: Footer()
+    });
+
+    <span class="hljs-built_in">module</span>.signals({
+      appStarted
+    })
+
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span> (<span class="hljs-params"></span>) </span>{
+      controller.getSignals().app.appStarted({}, { isSync: <span class="hljs-literal">true</span> });
+    }
+
+    controller.once(<span class="hljs-string">'predefinedSignal'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      controller.removeListener(<span class="hljs-string">'modulesLoaded'</span>, init)
+    })
+
+    controller.once(<span class="hljs-string">'modulesLoaded'</span>, init)
+  };
+}
+</code></pre>
 			<h3 id="preserving-payload-type">Preserving payload type</h3>
 			<h3 id="create-links">Create links</h3>
 		</div>
