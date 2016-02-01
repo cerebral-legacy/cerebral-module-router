@@ -5,188 +5,160 @@ An opinionated URL change handler for Cerebral
 [![Build status][travis-image]][travis-url]
 [![Test coverage][coveralls-image]][coveralls-url]
 [![bitHound Score][bithound-image]][bithound-url]
+[![Commitizen friendly][commitizen-image]][commitizen-url]
+[![Semantic Release][semantic-release-image]][semantic-release-url]
+[![js-standard-style][standard-image]][standard-url]
+[![Discord][discord-image]][discord-url]
 
 ### Install
 
 `npm install cerebral-module-router`
 
-### How to use
+### Quickstart
 
-When you build your Cerebral application you do not have to think about routing at all.
-You only trigger signals that brings your application into the correct state.
-Let us imagine an application that can open a messages page, and also open specific messages.
-
-```javascript
-
-import controller from './controller.js';
-import homeOpened from './signals/homeOpened';
-import messagesOpened from './signals/messagesOpened';
-import messageOpened from './signals/messageOpened';
-
-controller.signals({
-  messagesOpened,
-  messageOpened
-);
-```
-
-When we want to open the messages we call the signal:
-
-```javascript
-
-onMessagesClick() {
-  this.props.signals.messagesOpened();
-}
-```
-
-When we want to open a single message we call the signal and pass a payload:
-
-```javascript
-
-onMessageClick(id) {
-  this.props.signals.messageOpened({
-    id: id
-  });
-}
-```
-
-The signature of a state change is the signal and the payload passed. We can bind this signature to a route. Lets imagine we have implemented our whole application and it works great, we just need to update the addressbar with a url representing the current state of the application.
-
-So let us also add a `homeOpened` signal so that we handle the root url as well.
-
-```javascript
-
+```js
+import Cerebral from 'cerebral';
+import Model from 'cerebral-model-baobab'
 import Router from 'cerebral-module-router';
-import controller from './controller.js';
-import homeOpened from './signals/homeOpened';
-import messagesOpened from './signals/messagesOpened';
-import messageOpened from './signals/messageOpened';
+import App from './modules/app';
 
-controller.signals({
-  homeOpened,
-  messagesOpened,
-  messageOpened
-);
-
-controller.modules({
+controller.addModules({
+  app: App,
   router: Router({
-    '/': 'homeOpened',
-    '/messages': 'messagesOpened',
-    '/messages/:id': 'messageOpened'
+    '/': 'app.homeOpened',
+    '/messages': 'app.messagesOpened',
+    '/messages/:id': 'app.messageOpened',
+    '/*': 'app.notFoundOpened'
   }, {
-    mapper: { query: true } // Read about this below
-  });
+    onlyHash: true,            // use only hash part of url for matching
+    // baseUrl: '/',           // base part, that ignored on route match. detected automatically if `onlyHash` option set to true
+    // preventAutostart: true, // prevents automatic triggering after `modulesLoaded` event
+    mapper: { query: true }    // options passed to url-mapper
+  })
+);
+```
+
+### [API documentation](http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.router)
+
+### How it works
+
+The Cerebral Router is one of the least invasive routers out there.
+You can attach the router module to already written cerebral application and it will just work.
+And you will be able to disable router completely in environments where you do not need it at all(eg, React Native app).
+
+Though we are making few considerations:
+* Signal bound to route should be treated as potential entry point. Make sure that your signal would be able to run on app start.
+* Your app will prepare initial state either during server side rendering or within signals ran in sync with `modulesLoaded` event.
+
+#### Addressbar updates while navigating an app
+
+Router listens to `signalTrigger` and `signalStart` events.
+Addressbar will be updated if signal is bound to route in config.
+Router uses [url-mapper's](https://github.com/cerebral/url-mapper) [`stringify` method](https://github.com/cerebral/url-mapper#stringify-method) to get url from given route and signal payload.
+
+#### Trigger correspondent signal with payload while normal app startup
+
+Router listens to `modulesLoaded` event and schedules correspondent signal trigger if there was no predefined signal execution (see below).
+Router uses url-mapper's [`map` method](https://github.com/cerebral/url-mapper#map-method) to get matched signal and payload to pass.
+Matched signal trigger would be delayed until signals started by other modules on `modulesLoaded` event is finished, if any.
+
+#### Trigger correspondent signal on history traversal (back and forward navigation)
+
+Router listens history traversal events using [addressbar](https://github.com/cerebral/addressbar) library.
+It would trigger matched signal if url has changed.
+
+#### Just works with `devtools` time traveling and `recorder`
+
+Both [`devtools`](https://github.com/cerebral/cerebral-module-devtools) and [`recorder`](https://github.com/cerebral/cerebral-module-recorder) uses internal `cerebral` mechanism of predefined signal run.
+Router will update `addressbar` if any predefined signal was bound to route.
+So your `addressbar` will be kept in sync even using recordings and time travel debugging.
+
+### Routes config
+
+Routes config is object passed as first argument.
+Use [`path-to-regexp`](https://github.com/pillarjs/path-to-regexp) format routes as keys and signal name to bound as value.
+Use `'/*'` as key to make a catch all route definition.
+You can nest config object. Route will be concatenation of keys:
+
+```js
+Router({
+  '/foo': 'foo',   // `/foo` <==> `foo`
+  '/bar': {
+    '': 'bar',     // `/bar` <==> `bar`
+    '/baz': 'baz'  // `/bar/baz` <==> `baz`
+  }
 })
 ```
 
-Initial url would be handled automatically during application bootstrap if you are using `cerebral-react` (in container's `componentDidMount` method) or `cerebral-angular` (module's `run` section) packages.
-Otherwise you should call `trigger` method of exposed service to ensure that initial url is handled.
+### Application startup
 
-The router checks the url and fires the signal related to the url. The url will be parsed and any payload will be passed on the signal. That means if you go to `example.com/messages/123` it will trigger the `messageOpened` signal with the payload `{id: '123'}`.
+As said before router will autodetect any signal ran in sync with `modulesLoaded` event.
+Router will not trigger if there was remembering of state occured before `modulesLoaded` event.
+We strongly recommend not to run your initial signals in that case too.
 
-But if you click a message in the list it will also trigger the `messageOpened` signal with the payload `{id: '456'}` and now the url will also update to `example.com/messages/456`.
+You can set some `isLoaded` flag in state store within initial signal and chech it before run.
+Or remove `modulesLoaded` event listener if there was `predefinedSignal` emitted.
+```js
+import NewTodo from './modules/NewTodo';
+import List from './modules/List';
+import Footer from './modules/Footer';
 
-So it works both ways!
+import appStarted from './signals/appStarted';
 
-The important thing to understand here is that your application does not trigger urls to change its state.
-It triggers signals. Then you bind a route to a signal to allow a url to trigger the signal as well.
+export default (options = {}) => {
+  return (module, controller) => {
 
-That means:
+    module.modules({
+      new: NewTodo(),
+      list: List(),
+      footer: Footer()
+    });
 
-```javascript
+    module.signals({
+      appStarted
+    })
 
-// Going to url
-"example.com/messages/456"
+    function init () {
+      controller.getSignals().app.appStarted({}, { isSync: true });
+    }
 
-// Is exactly the same as
-this.props.signals.messageOpened({
-  id: '456'
-});
-```
+    controller.once('predefinedSignal', function () {
+      controller.removeListener('modulesLoaded', init)
+    })
 
-### Diving into the app from a url
-In the example above, when navigating in the app, you have to go to `/messages` before you can go to `/messages/456`.
-But when you expose urls you could go directly to `/messages/456`. So how do you handle that?
-
-```javascript
-
-...
-controller.signals({
-  messageOpened: [...messagesOpened, ...messageOpened]
-});
-
-controller.modules({
-  router: Router({
-    '/': 'homeOpened',
-    '/messages': 'messagesOpened',
-    '/messages/:id': 'messageOpened'
-  });
-})
-```
-
-With Cerebral you are already used to composing chains and actions together and this is also effective when creating routes.
-Now you might say, "I do not want to load my messages every time I open a message!".
-There are multiple ways to handle this. It depends on when you want to load the messages.
-
-But lets say you want to load them whenever you actually go to `/messages`.
-Inside your `messagesOpened` signal you can just check if there is an ID on the input.
-If there is an ID it means you are about to open a message, if not it means you are just opening the messages.
-
-### What about queries?
-With Cerebral you get a very powerful way to use queries.
-But first we have to make a statement: "Queries are produced by your application, not by users".
-With this perspective we can do some wonderful things. Lets get back to opening our message.
-Inside the component opening the message we want to pass more than the ID of the message.
-We want to pass: `{withComments: true}`. So that when we load the message, we load it with comments.
-
-```javascript
-
-onMessageClick(id) {
-  this.props.signals.messageOpened({
-    id: id,
-    withComments: true
-  });
+    controller.once('modulesLoaded', init)
+  };
 }
 ```
 
-Since this signal is bound to a url Cerebral router will automatically make this part of the query, turning your url into `example.com/messages/123?withComments:true`.
-That means if you refresh or pass the url to somebody else it will pass `{id: '123', withComments: true}` as the payload to the signal, opening the message in the exact same way, with the comments.
+### Preserving payload type
 
-Notice here that we have `withComments:true`, not `withComment=true`.
-This is because Cerebral router uses the [`URLON`](https://github.com/vjeux/URLON) project to create serializable queries.
-As you can see it is very powerful.
+We suppose that router usage should be safe.
+We can't be sure that nothing will break if we pass `String` instead of `Number` or `Boolean` to signal payload when triggering signal from url.
+Thats why router will preserve types when stringifying payload to url.
+But it can cause "unexpected" appear of `%3A` entries in url.
+Cast your payload param that appears in url path part to string if you do not want to `%3A` to appear in url.
+It is your responsibility to make sure that your action deal with `String` as you expected.
 
-### Tell me more about how routes matched
+Given that you still be able to disable router at any time.
 
-`cerebral-module-router` relies on [`url-mapper`](https://github.com/cerebral/url-mapper) default behavior:
+### Queries powered with urlon
 
-* [`path-to-regexp`](https://github.com/pillarjs/path-to-regexp) library is used to define routes and payload parameters.
-It tweaked to preserve payload parameters with `Number` and `Boolean` types, prepending it with colon.
-* Payload parameters not defined in route part is mapped to query using `URLON` notation if `mapper: { query: true }` option was passed to router.
+Path-to-regexp is pretty powerfull, but sometimes you want your url would hold more information to pass your app.
+Usually it is done through queries. Using the same considerations as in previous point we decided that types should be preserved.
+We can enable query support with [`urlon`](https://github.com/vjeux/URLON) super powers of stringify/pasrse any JSON compatible object (any payload can be passed to signal, as fact).
+Just pass `mapper: { query: true }` to router options and any payload not defined in path part would be stringified to query part.
+It is not easy to construct `urlon` queries by hands, but you never had to. Just keep reading.
 
-Routable part of url is extracted based on `onlyHash` and `baseUrl` options provided to router.
+### Create links
 
-```javascript
-controller.modules({
-  router: Router({
-    '/': 'homeOpened',
-    '/messages': 'messagesOpened',
-    '/messages/:id': 'messageOpened'
-  },  {
-    onlyHash: true,
-    baseUrl: '/path',
-    mapper: { query: true }
-  });
-})
-```
+Most times you need to have a links in app. It enables sharing url, opening url in new tab, etc.
+You can use [`getSignalUrl`](http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.routerservice.getsignalurl) method exposed by router to avoid hardcoding urls within app.
+Please follow your view package documentation to see if it already have component to make a links.
+Fell free to create an issue on that package otherwise.
 
-With given config and `https://example.com/path#/messages/123?withComments:true` url `/messages/123?withComments:true` is routable part.
-Then `url-mapper` matches it to route `/messages/:id` and extracts payload `{id: '123', withComments: true}`.
-
-### I want my own scheme for routes as well as queries
-
-Feel free to implement [`compileFn`](https://github.com/cerebral/url-mapper/#matcher) which return your own `parse` and `stringify` methods for given route.
-The only recommendation is: parse method for previously stringified payload should result the same payload. Just like `JSON.parse(JSON.stringify(object))`.
-[Create an issue](https://github.com/cerebral/cerebral-module-router/issues/new) if you need this now since `cerebral-module-router` had to be patched to support custom mapper.
+Link component will fallback to `onClick` event handler if router is absent.
+So you can disable router at any time even if you are using links.
 
 [npm-image]: https://img.shields.io/npm/v/cerebral-module-router.svg?style=flat
 [npm-url]: https://npmjs.org/package/cerebral-module-router
@@ -196,3 +168,11 @@ The only recommendation is: parse method for previously stringified payload shou
 [coveralls-url]: https://coveralls.io/r/cerebral/cerebral-module-router?branch=master
 [bithound-image]: https://www.bithound.io/github/cerebral/cerebral-module-router/badges/score.svg
 [bithound-url]: https://www.bithound.io/github/cerebral/cerebral-module-router
+[commitizen-image]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
+[commitizen-url]: http://commitizen.github.io/cz-cli/
+[semantic-release-image]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg?style=flat-square
+[semantic-release-url]: https://github.com/semantic-release/semantic-release
+[standard-image]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg
+[standard-url]: http://standardjs.com/
+[discord-image]: https://img.shields.io/badge/discord-join%20chat-blue.svg
+[discord-url]: https://discord.gg/0kIweV4bd2bwwsvH
