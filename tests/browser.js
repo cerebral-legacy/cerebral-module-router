@@ -213,6 +213,32 @@ module.exports = {
     })
   },
 
+  'should not trigger on first signalEnd if preventAutostart option was provided': function (test) {
+    test.expect(1)
+    this.controller.addSignals({
+      test: [
+        function checkAction () {
+          test.ok(true)
+        }
+      ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      }, {
+        preventAutostart: true
+      })
+    })
+
+    this.controller.once('signalEnd', function () {
+      setTimeout(test.done)
+    })
+
+    this.controller.getSignals().test()
+  },
+
   'should not trigger on modulesLoaded if url was remembered': function (test) {
     test.expect(1)
     var controller = this.controller

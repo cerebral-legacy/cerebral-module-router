@@ -44,7 +44,7 @@ function Router (routesConfig, options) {
   return function init (module, controller) {
     var signals = getRoutableSignals(routesConfig, controller.getSignals(), _getUrl)
     var rememberedUrl
-    var initialSignals = []
+    var initialSignals
 
     function setRememberedUrl () {
       addressbar.value = rememberedUrl
@@ -177,8 +177,12 @@ function Router (routesConfig, options) {
     controller.on('predefinedSignal', onPredefinedSignal)
     controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
-    controller.on('signalEnd', onSignalEnd)
-    if (!options.preventAutostart) controller.on('modulesLoaded', onModulesLoaded)
+
+    if (!options.preventAutostart) {
+      initialSignals = []
+      controller.on('signalEnd', onSignalEnd)
+      controller.on('modulesLoaded', onModulesLoaded)
+    }
   }
 }
 
