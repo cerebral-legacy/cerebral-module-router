@@ -538,10 +538,39 @@ module.exports = {
     test.done()
   },
 
+  'should allow redirect to url and trigger corresponded signal': function (test) {
+    this.controller.addSignals({
+      'existing': [
+        function checkAction (args) {
+          test.equals(args.input.string, 'foo')
+          test.equals(args.input.bool, true)
+          test.equals(args.input.num, 42)
+          test.equals(addressbar.pathname, '/existing/foo/%3Atrue/%3A42')
+          test.done()
+        }
+      ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: Router({
+        '/existing/:string/:bool/:num': 'existing'
+      }, {
+        preventAutostart: true
+      })
+    })
+
+    this.controller.getServices().router.redirect('/existing/foo/%3Atrue/%3A42')
+  },
+
   'should provide redirect action factory': function (test) {
     this.controller.addSignals({
       'existing': [
-        function checkAction () { test.ok(true) }
+        function checkAction () {
+          test.ok(true)
+          test.equals(addressbar.pathname, '/existing')
+          test.done()
+        }
       ],
       'missing': [
         redirect('/existing')
@@ -553,12 +582,11 @@ module.exports = {
       router: Router({
         '/existing': 'existing',
         '/*': 'missing'
+      }, {
+        preventAutostart: true
       })
     })
     emit('/missing')
-
-    test.equals(addressbar.pathname, '/existing')
-    test.done()
   },
 
   'should replaceState on redirect by default': function (test) {
@@ -574,6 +602,8 @@ module.exports = {
       router: Router({
         '/existing': 'existing',
         '/*': 'noop'
+      }, {
+        preventAutostart: true
       })
     })
 
@@ -596,6 +626,8 @@ module.exports = {
       router: Router({
         '/existing': 'existing',
         '/*': 'noop'
+      }, {
+        preventAutostart: true
       })
     })
 
