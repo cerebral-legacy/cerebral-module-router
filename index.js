@@ -222,7 +222,7 @@ function getRoutableSignals (config, signals, getUrl) {
     if (!signal) {
       throw new Error('Cerebral router - The signal "' + config[route] +
       '" for the route "' + route + '" does not exist. ' +
-      'Make sure that ' + MODULE + 'loaded after all modules with routable signals.')
+      'Make sure that ' + MODULE + ' loaded after all modules with routable signals.')
     }
     if (routableSignals[config[route]]) {
       throw new Error('Cerebral router - The signal "' + config[route] +
