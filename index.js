@@ -129,7 +129,7 @@ function Router (routesConfig, options) {
 
     var services = {
       trigger: function trigger (url) {
-        addressbar.value = url || addressbar.value
+        if (url) addressbar.value = url
         onUrlChange()
       },
 
