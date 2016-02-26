@@ -26,6 +26,7 @@ var Router = require('./../index.js')
 var redirect = Router.redirect
 
 function emit (url) {
+  addressbar.value = url
   addressbar.emit('change', {
     preventDefault: function () {},
     target: {value: addressbar.origin + url}
@@ -334,6 +335,28 @@ module.exports = {
     emit('/')
   },
 
+  'should not set isRouted flag on direct signal call': function (test) {
+    this.controller.addSignals({
+      test: [ function () {} ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: Router({
+        '/': 'test'
+      }, {
+        preventAutostart: true
+      })
+    })
+
+    this.controller.once('signalStart', function (args) {
+      test.ok(!args.signal.isRouted)
+      test.done()
+    })
+
+    this.controller.getSignals().test()
+  },
+
   'should run nested signal': function (test) {
     this.controller.addSignals({
       'test.test1.test2': [
@@ -536,6 +559,17 @@ module.exports = {
     })
 
     test.equals(addressbar.pathname, '/test')
+    test.done()
+  },
+
+  'should not update addressbar for signal triggered by route': function (test) {
+    this.createRouteTest({
+      route: '/test'
+    })
+
+    emit('/test?query')
+
+    test.equals(addressbar.value, addressbar.origin + '/test?query')
     test.done()
   },
 

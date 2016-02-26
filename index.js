@@ -66,7 +66,9 @@ function Router (routesConfig, options) {
         var map = urlMapper.map(url.replace(options.baseUrl, ''), routesConfig)
 
         if (map) {
-          signals[map.match].signal(map.values)
+          signals[map.match].signal(map.values, {
+            isRouted: true
+          })
         } else {
           console.warn('Cerebral router - No route matched "' + url + '" url, navigation was prevented. ' +
             'Please verify url or catch unmatched routes with a "/*" route.')
@@ -89,7 +91,6 @@ function Router (routesConfig, options) {
       var signal = signals[event.signal.name]
       if (signal) {
         event.signal.isSync = true
-        event.signal.isRouted = true
       }
     }
 
@@ -99,7 +100,7 @@ function Router (routesConfig, options) {
       }
 
       var signal = signals[event.signal.name]
-      if (signal) {
+      if (signal && !event.signal.isRouted) {
         var route = signal.route
         var input = event.signal.input || {}
         addressbar.value = options.baseUrl + urlMapper.stringify(route, input)
