@@ -781,7 +781,7 @@ module.exports = {
     test.done()
   },
 
-  'should warn if navigation prevented': function (test) {
+  'should prevent navigation and warn when no signals was matched': function (test) {
     var routeTest = this.createRouteTest({
       route: '/',
       options: {
@@ -794,6 +794,24 @@ module.exports = {
 
     test.equal(routeTest.emit('/base/missing'), 'prevented')
     test.equal(this.warnMessage.indexOf('prevented') >= 0, true)
+
+    test.done()
+  },
+
+  'should not prevent navigation when no signals was matched if allowEscape option was provided': function (test) {
+    var routeTest = this.createRouteTest({
+      route: '/',
+      options: {
+        baseUrl: '/base',
+        allowEscape: true
+      }
+    })
+
+    test.equal(routeTest.emit('/missing'), false)
+    test.equal(this.warnMessage, undefined)
+
+    test.equal(routeTest.emit('/base/missing'), false)
+    test.equal(this.warnMessage, undefined)
 
     test.done()
   },

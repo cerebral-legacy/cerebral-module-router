@@ -62,7 +62,6 @@ function Router (routesConfig, options) {
 
       // check if url should be routed
       if (url.indexOf(options.baseUrl) === 0) {
-        event && event.preventDefault()
         var map = urlMapper.map(url.replace(options.baseUrl, ''), routesConfig)
 
         if (map) {
@@ -70,9 +69,11 @@ function Router (routesConfig, options) {
             isRouted: true
           })
         } else {
+          if (options.allowEscape) return
           console.warn('Cerebral router - No route matched "' + url + '" url, navigation was prevented. ' +
             'Please verify url or catch unmatched routes with a "/*" route.')
         }
+        event && event.preventDefault()
       }
     }
 

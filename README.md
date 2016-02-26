@@ -33,6 +33,7 @@ controller.addModules({
     onlyHash: true,            // use only hash part of url for matching
     // baseUrl: '/',           // base part, that ignored on route match. detected automatically if `onlyHash` option set to true
     // preventAutostart: true, // prevents automatic triggering after `modulesLoaded` event
+    // allowEscape: true,      // do not prevent navigation for triggered urls if no routes was matched and catch all route wasn't provided
     mapper: { query: true }    // options passed to url-mapper
   })
 );
