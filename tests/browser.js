@@ -45,7 +45,8 @@ module.exports = {
 
       var doesMatch = false
       var defaultPrevented = false
-      var routerOptions = options.options
+      var routerOptions = options.options || {}
+      routerOptions.preventAutostart = true
 
       controller.addSignals({
         match: [
@@ -310,7 +311,7 @@ module.exports = {
     })
   },
 
-  'should set isSync and isRouted flags on signal': function (test) {
+  'should set isSync and isRouted flags on signal triggered from url': function (test) {
     this.controller.addSignals({
       test: [ function () {} ]
     })
@@ -319,14 +320,18 @@ module.exports = {
       devtools: function () {},
       router: Router({
         '/': 'test'
+      }, {
+        preventAutostart: true
       })
     })
 
     this.controller.once('signalStart', function (args) {
       test.ok(args.signal.isSync)
       test.ok(args.signal.isRouted)
+      test.done()
     })
-    test.done()
+
+    emit('/')
   },
 
   'should run nested signal': function (test) {
@@ -520,11 +525,23 @@ module.exports = {
     test.done()
   },
 
-  'should not change url for regular signal call': function (test) {
+  'should update addressbar for routable signal call': function (test) {
+    this.createRouteTest({
+      route: '/test',
+      initialUrl: '/initial'
+    })
+
+    this.controller.getSignals().match({}, {
+      isSync: true
+    })
+
+    test.equals(addressbar.pathname, '/test')
+    test.done()
+  },
+
+  'should not update addressbar for regular signal call': function (test) {
     this.controller.addSignals({
-      'test': [
-        function (arg) { arg.state.set(['foo'], 'bar') }
-      ]
+      'test': [ function noop () {} ]
     })
 
     this.createRouteTest({
