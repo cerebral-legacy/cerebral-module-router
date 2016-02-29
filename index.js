@@ -65,15 +65,19 @@ function Router (routesConfig, options) {
         var map = urlMapper.map(url.replace(options.baseUrl, ''), routesConfig)
 
         if (map) {
+          event && event.preventDefault()
+          addressbar.value = url
+
           signals[map.match].signal(map.values, {
             isRouted: true
           })
         } else {
           if (options.allowEscape) return
+
+          event && event.preventDefault()
           console.warn('Cerebral router - No route matched "' + url + '" url, navigation was prevented. ' +
             'Please verify url or catch unmatched routes with a "/*" route.')
         }
-        event && event.preventDefault()
       }
     }
 
