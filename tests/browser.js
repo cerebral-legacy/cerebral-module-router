@@ -26,11 +26,15 @@ var Router = require('./../index.js')
 var redirect = Router.redirect
 
 function emit (url) {
-  addressbar.value = url
+  var defaultPrevented = false
   addressbar.emit('change', {
-    preventDefault: function () {},
+    preventDefault: function () {
+      defaultPrevented = true
+    },
     target: {value: addressbar.origin + url}
   })
+
+  if (!defaultPrevented) addressbar.value = url
 }
 
 // TESTS
@@ -562,15 +566,19 @@ module.exports = {
     test.done()
   },
 
-  'should not update addressbar for signal triggered by route': function (test) {
+  'should preserve addressbar value for signal triggered by route': function (test) {
+    test.expect(1)
+
     this.createRouteTest({
       route: '/test'
     })
 
-    emit('/test?query')
+    this.controller.once('signalEnd', function () {
+      test.equals(addressbar.value, addressbar.origin + '/test?query')
+      test.done()
+    })
 
-    test.equals(addressbar.value, addressbar.origin + '/test?query')
-    test.done()
+    emit('/test?query')
   },
 
   'should not update addressbar for regular signal call': function (test) {
