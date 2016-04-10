@@ -27,8 +27,6 @@ function Router (routesConfig, options) {
     routesConfig = flattenConfig(routesConfig)
   }
 
-  if (options.autoTrigger) console.warn('Cerebral router - autoTrigger option can be safely removed.')
-
   if (!options.baseUrl && options.onlyHash) {
     // autodetect baseUrl
     options.baseUrl = addressbar.pathname

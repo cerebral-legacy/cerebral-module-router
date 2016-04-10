@@ -483,15 +483,6 @@ module.exports = {
     test.done()
   },
 
-  'should inform that `autoTrigger` could be removed': function (test) {
-    Router({}, {
-      autoTrigger: true
-    })
-
-    test.equal(this.warnMessage.length >= 0, true)
-    test.done()
-  },
-
   'should expose `getUrl` method on router service': function (test) {
     this.createRouteTest({
       route: '/:param',
