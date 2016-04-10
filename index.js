@@ -34,13 +34,8 @@ function Router (routesConfig, options) {
   options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '#' : '')
   var urlMapper = Mapper(options.mapper)
 
-  function _getUrl (route, input) {
-    console.warn('Cerebral router - signal.getUrl() method is deprecated. Use service method getSignalUrl() instead')
-    return options.baseUrl + urlMapper.stringify(route, input || {})
-  }
-
   return function init (module, controller) {
-    var signals = getRoutableSignals(routesConfig, controller.getSignals(), _getUrl)
+    var signals = getRoutableSignals(routesConfig, controller.getSignals())
     var rememberedUrl
     var initialSignals
 
@@ -216,7 +211,7 @@ function flattenConfig (config, prev, flatten) {
   return flatten
 }
 
-function getRoutableSignals (config, signals, getUrl) {
+function getRoutableSignals (config, signals) {
   var routableSignals = {}
 
   Object.keys(config).forEach(function (route) {
@@ -231,7 +226,6 @@ function getRoutableSignals (config, signals, getUrl) {
       '" has already been bound to route "' + route +
       '". Create a new signal and reuse actions instead if needed.')
     }
-    signal.getUrl = getUrl.bind(null, route)
     routableSignals[config[route]] = {
       route: route,
       signal: signal

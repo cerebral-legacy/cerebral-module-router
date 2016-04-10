@@ -531,22 +531,6 @@ module.exports = {
     test.done()
   },
 
-  'should warn `getUrl` method for wrapped signal is deprecated': function (test) {
-    this.createRouteTest({
-      route: '/',
-      options: {
-        baseUrl: '/test',
-        mapper: { query: true },
-        onlyHash: true
-      }
-    })
-
-    test.equals(this.controller.getSignals().match.getUrl(), '/test#/')
-    test.equals(this.controller.getSignals().match.getUrl({ param: 'test' }), '/test#/?param=test')
-    test.equal(this.warnMessage.indexOf('deprecated') >= 0, true)
-    test.done()
-  },
-
   'should update addressbar for routable signal call': function (test) {
     this.createRouteTest({
       route: '/test',
