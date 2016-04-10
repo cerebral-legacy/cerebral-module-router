@@ -189,8 +189,8 @@ module.exports = {
       devtools: function () {},
       app: function (modules, controller) {
         controller.on('modulesLoaded', function () {
-          controller.getSignals().init1({}, { isSync: true })
-          controller.getSignals().init2({}, { isSync: true })
+          controller.getSignals().init1({}, { immediate: true })
+          controller.getSignals().init2({}, { immediate: true })
         })
       },
       router: Router({
@@ -310,7 +310,7 @@ module.exports = {
       },
       app: function (modules, controller) {
         controller.on('modulesLoaded', function () {
-          controller.getSignals().init1({}, { isSync: true })
+          controller.getSignals().init1({}, { immediate: true })
         })
       },
       router: Router({
@@ -562,9 +562,7 @@ module.exports = {
       initialUrl: '/initial'
     })
 
-    this.controller.getSignals().match({}, {
-      isSync: true
-    })
+    this.controller.getSignals().match({}, { immediate: true })
 
     test.equals(addressbar.pathname, '/test')
     test.done()
@@ -595,7 +593,7 @@ module.exports = {
       initialUrl: '/initial'
     })
 
-    this.controller.getSignals().test.sync()
+    this.controller.getSignals().test({}, { immediate: true })
 
     test.equals(addressbar.pathname, '/initial')
     test.done()
