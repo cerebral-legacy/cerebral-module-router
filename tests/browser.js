@@ -3,7 +3,8 @@ global.window = {
   location: {
     origin: 'http://localhost:3000',
     href: 'http://localhost:3000/initial'
-  }
+  },
+  history: {}
 }
 global.history = {
   pushState: function (_, __, value) {
@@ -98,6 +99,9 @@ module.exports = {
     this.warn = console.warn
     console.warn = function (message) {
       this.warnMessage = message
+      if (!~message.indexOf('Cerebral router')) {
+        this.warn(message)
+      }
     }.bind(this)
 
     cb()
