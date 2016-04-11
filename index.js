@@ -85,13 +85,6 @@ function Router (routesConfig, options) {
       }
     }
 
-    function onSignalTrigger (event) {
-      var signal = signals[event.signal.name]
-      if (signal) {
-        event.signal.isSync = true
-      }
-    }
-
     function onSignalStart (event) {
       if (Array.isArray(initialSignals)) {
         initialSignals.push(event.signal)
@@ -174,7 +167,6 @@ function Router (routesConfig, options) {
     module.addServices(services)
     addressbar.on('change', onUrlChange)
     controller.on('predefinedSignal', onPredefinedSignal)
-    controller.on('signalTrigger', onSignalTrigger)
     controller.on('signalStart', onSignalStart)
 
     if (!options.preventAutostart) {

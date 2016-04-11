@@ -55,9 +55,10 @@ module.exports = {
       routerOptions.preventAutostart = true
 
       controller.addSignals({
-        match: [
-          function setMatch () { doesMatch = true }
-        ]
+        match: {
+          chain: [ function setMatch () { doesMatch = true } ],
+          immediate: true
+        }
       })
 
       var routes = {}
@@ -87,7 +88,7 @@ module.exports = {
           // secure preventing default link href navigation
           // matched and prevented => true
           // missed and not prevented => false
-          // missed and prevente => 'prevented'
+          // missed and prevented => 'prevented'
           return (doesMatch === defaultPrevented) ? doesMatch : 'prevented'
         },
         runSignal: function (payload) {
@@ -115,32 +116,6 @@ module.exports = {
     console.warn = this.warn
 
     cb()
-  },
-
-  'should run signal synchronously': function (test) {
-    this.controller.addSignals({
-      test: [
-        function checkAction () { test.ok(true) }
-      ]
-    })
-
-    // async run before wrapping
-    this.controller.getSignals().test()
-
-    this.controller.addModules({
-      devtools: function () {},
-      router: Router({
-        '/': 'test'
-      })
-    })
-    // sync run on emit
-    emit('/')
-
-    // sync run after wrapping
-    this.controller.getSignals().test()
-
-    test.expect(2)
-    test.done()
   },
 
   'should trigger on modulesLoaded': function (test) {
@@ -335,7 +310,6 @@ module.exports = {
     })
 
     this.controller.once('signalStart', function (args) {
-      test.ok(args.signal.isSync)
       test.ok(args.signal.isRouted)
       test.done()
     })
@@ -368,7 +342,10 @@ module.exports = {
   'should run nested signal': function (test) {
     this.controller.addSignals({
       'test.test1.test2': [
-        function checkAction () { test.ok(true) }
+        function checkAction () {
+          test.ok(true)
+          test.done()
+        }
       ]
     })
 
@@ -378,19 +355,17 @@ module.exports = {
         '/': 'test.test1.test2'
       })
     })
-    emit('/')
 
     test.expect(1)
-    test.done()
   },
 
   'should support nested route definitions': function (test) {
     function checkAction () { test.ok(true) }
 
     this.controller.addSignals({
-      'foo': [ checkAction ],
-      'bar': [ checkAction ],
-      'baz': [ checkAction ]
+      'foo': { chain: [ checkAction ], immediate: true },
+      'bar': { chain: [ checkAction ], immediate: true },
+      'baz': { chain: [ checkAction ], immediate: true }
     })
 
     this.controller.addModules({
