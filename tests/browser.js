@@ -295,7 +295,7 @@ module.exports = {
     })
   },
 
-  'should set isSync and isRouted flags on signal triggered from url': function (test) {
+  'should set isRouted flag on signal triggered from url': function (test) {
     this.controller.addSignals({
       test: [ function () {} ]
     })
@@ -310,7 +310,7 @@ module.exports = {
     })
 
     this.controller.once('signalStart', function (args) {
-      test.ok(args.signal.isRouted)
+      test.ok(args.signal.isRouted || args.options.isRouted)
       test.done()
     })
 

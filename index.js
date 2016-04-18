@@ -91,7 +91,7 @@ function Router (routesConfig, options) {
       }
 
       var signal = signals[event.signal.name]
-      if (signal && !event.signal.isRouted) {
+      if (signal && (!event.signal.isRouted && !(event.options && event.options.isRouted))) {
         var route = signal.route
         var input = event.signal.input || {}
         addressbar.value = options.baseUrl + urlMapper.stringify(route, input)
@@ -174,13 +174,29 @@ function Router (routesConfig, options) {
       controller.on('signalEnd', onSignalEnd)
       controller.on('modulesLoaded', onModulesLoaded)
     }
+
+    if (controller.addContextProvider) {
+      var context = {}
+      context[MODULE] = {
+        path: module.path
+      }
+      controller.addContextProvider(context)
+    }
   }
 }
 
+var getRouterServices = function (context) {
+  var modulePath = context.modules ? context.modules[MODULE].path : context[MODULE].path
+  return modulePath.reduce(function (services, key) {
+    return services[key]
+  }, context.services)
+}
+
 Router.redirect = function (url, params) {
-  function action (args) {
-    var module = args.modules[MODULE]
-    return module.services.redirect(url, params)
+  function action (context) {
+    var services = getRouterServices(context)
+
+    return services.redirect(url, params)
   }
 
   action.displayName = 'redirect(' + url + ')'
