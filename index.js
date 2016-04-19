@@ -93,7 +93,7 @@ function Router (routesConfig, options) {
       var signal = signals[event.signal.name]
       if (signal && (!event.signal.isRouted && !(event.options && event.options.isRouted))) {
         var route = signal.route
-        var input = event.signal.input || {}
+        var input = event.signal.input || event.payload || {}
         addressbar.value = options.baseUrl + urlMapper.stringify(route, input)
       }
     }

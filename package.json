@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "pretest": "standard",
-    "test": "nodeunit tests && npm i cerebral@0.34.0-rc.2 && nodeunit tests",
+    "test": "nodeunit tests && npm i cerebral@^0.34.0-rc.4 && nodeunit tests",
     "posttest": "npm i",
     "coverage": "nyc --reporter=lcov --reporter=text npm run test",
     "postcoverage": "cat ./coverage/lcov.info | coveralls",
