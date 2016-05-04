@@ -186,7 +186,7 @@ function Router (routesConfig, options) {
 }
 
 var getRouterServices = function (context) {
-  var modulePath = context.modules ? context.modules[MODULE].path : context[MODULE].path
+  var modulePath = context[MODULE] ? context[MODULE].path : context.modules[MODULE].path
   return modulePath.reduce(function (services, key) {
     return services[key]
   }, context.services)
