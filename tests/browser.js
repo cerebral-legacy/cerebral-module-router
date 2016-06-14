@@ -474,6 +474,20 @@ module.exports = {
     test.done()
   },
 
+  'should expose `getMatchedRoute` method on router service': function (test) {
+    this.createRouteTest({
+      route: '/foo/:param',
+      options: {
+        baseUrl: '/test',
+        onlyHash: true
+      }
+    })
+
+    this.controller.getSignals().match({ param: 'foo value' })
+    test.deepEqual(this.controller.getServices().router.getMatchedRoute(), { route: '/foo/:param', match: 'match', values: { param: 'foo value' } })
+    test.done()
+  },
+
   'should expose `getSignalUrl` method on router service': function (test) {
     this.createRouteTest({
       route: '/',
