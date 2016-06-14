@@ -132,6 +132,11 @@ function Router (routesConfig, options) {
         return addressbar.value.replace(addressbar.origin + options.baseUrl, '')
       },
 
+      getMatchedRoute: function getMatchedRoute () {
+        console.log(addressbar.value)
+        return urlMapper.map(addressbar.value.replace(addressbar.origin + options.baseUrl, ''), routesConfig)
+      },
+
       getSignalUrl: function getSignalUrl (signalName, input) {
         if (signals[signalName]) {
           var route = signals[signalName].route
