@@ -133,7 +133,6 @@ function Router (routesConfig, options) {
       },
 
       getMatchedRoute: function getMatchedRoute () {
-        console.log(addressbar.value)
         return urlMapper.map(addressbar.value.replace(addressbar.origin + options.baseUrl, ''), routesConfig)
       },
 
