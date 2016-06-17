@@ -118,9 +118,11 @@ module.exports = {
     cb()
   },
 
-  'should trigger on modulesLoaded': function (test) {
+  'should trigger sync with modulesLoaded event and run signal immediate': function (test) {
+    test.expect(1)
+
     this.controller.addSignals({
-      test: [ function checkAction () { test.done() } ]
+      test: [ function checkAction () { test.ok(true) } ]
     })
 
     this.controller.addModules({
@@ -129,6 +131,8 @@ module.exports = {
         '/': 'test'
       })
     })
+
+    test.done()
   },
 
   'should delay auto trigger if there is running signals': function (test) {
