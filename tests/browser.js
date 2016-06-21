@@ -224,14 +224,64 @@ module.exports = {
     this.controller.getSignals().test()
   },
 
-  'should not trigger on modulesLoaded if url was remembered': function (test) {
+  'should restore url if remembering occured cerebral@0.33': function (test) {
     test.expect(1)
     var controller = this.controller
 
     controller.addSignals({
-      foo: [ function checkAction () { test.ok(true) } ],
-      bar: [ function checkAction () { test.ok(true) } ],
-      baz: [ function checkAction () { test.ok(true) } ]
+      foo: [ function checkAction () { test.ok(false) } ]
+    })
+
+    controller.on('modulesLoaded', function () {
+      setTimeout(function () {
+        test.equals(addressbar.value.replace(addressbar.origin, ''), '/foo/bar?baz=baz')
+        test.done()
+      })
+    })
+
+    controller.addModules({
+      router: Router({
+        '/foo/:bar': 'foo'
+      }, { mapper: { query: true } }),
+      devtools: function () {
+        controller.emit('predefinedSignal', { signal: { name: 'foo', input: { bar: 'bar', baz: 'baz' } } })
+      }
+    })
+  },
+
+  'should restore url if remembering occured cerebral@0.34': function (test) {
+    test.expect(1)
+    var controller = this.controller
+
+    controller.addSignals({
+      foo: [ function checkAction () { test.ok(false) } ]
+    })
+
+    controller.on('modulesLoaded', function () {
+      setTimeout(function () {
+        test.equals(addressbar.value.replace(addressbar.origin, ''), '/foo/bar?baz=baz')
+        test.done()
+      })
+    })
+
+    controller.addModules({
+      router: Router({
+        '/foo/:bar': 'foo'
+      }, { mapper: { query: true } }),
+      devtools: function () {
+        controller.emit('predefinedSignal', { signal: { name: 'foo' }, payload: { bar: 'bar', baz: 'baz' } })
+      }
+    })
+  },
+
+  'should not run initial trigger on modulesLoaded if there was remembering': function (test) {
+    test.expect(1)
+    var controller = this.controller
+
+    controller.addSignals({
+      foo: [ function checkAction () { test.ok(false) } ],
+      bar: [ function checkAction () { test.ok(false) } ],
+      baz: [ function checkAction () { test.ok(false) } ]
     })
 
     controller.on('modulesLoaded', function () {
@@ -248,22 +298,23 @@ module.exports = {
       }),
       devtools: function () {
         controller.emit('predefinedSignal', { signal: { name: 'foo' } })
-        controller.emit('predefinedSignal', { signal: { name: 'baz' } })
         controller.emit('predefinedSignal', { signal: { name: 'bar' } })
+        controller.emit('predefinedSignal', { signal: { name: 'baz' } })
       }
     })
   },
 
-  'should not run delayed trigger if url was remembered': function (test) {
-    test.expect(1)
+  'should not run delayed initial trigger if there was remembering': function (test) {
+    test.expect(2)
     var controller = this.controller
 
     controller.addSignals({
-      test: [ function checkAction () { test.ok(true) } ],
-      foo: [ function checkAction () { test.ok(true) } ],
+      test: [ function checkAction () { test.ok(false) } ],
+      foo: [ function checkAction () { test.ok(false) } ],
       init1: [
         [ function asyncAction (args) {
           setTimeout(function () {
+            test.ok(true)
             args.output()
           }, 50)
         } ]

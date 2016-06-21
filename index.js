@@ -80,7 +80,7 @@ function Router (routesConfig, options) {
         if (!rememberedUrl) setTimeout(setRememberedUrl)
 
         var route = signal.route
-        var input = event.signal.input || {}
+        var input = event.signal.input || event.payload || {}
         rememberedUrl = options.baseUrl + urlMapper.stringify(route, input)
       }
     }
