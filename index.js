@@ -44,7 +44,7 @@ function Router (routesConfig, options) {
       rememberedUrl = null
     }
 
-    function onUrlChange (event) {
+    function onUrlChange (event, forceImmediate) {
       var url = event ? event.target.value : addressbar.value
       url = url.replace(addressbar.origin, '')
 
@@ -61,9 +61,16 @@ function Router (routesConfig, options) {
           event && event.preventDefault()
           addressbar.value = url
 
-          signals[map.match].signal(map.values, {
-            isRouted: true
-          })
+          if (forceImmediate === true) {
+            signals[map.match].signal(map.values, {
+              isRouted: true,
+              immediate: true
+            })
+          } else {
+            signals[map.match].signal(map.values, {
+              isRouted: true
+            })
+          }
         } else {
           if (options.allowEscape) return
 
@@ -80,7 +87,7 @@ function Router (routesConfig, options) {
         if (!rememberedUrl) setTimeout(setRememberedUrl)
 
         var route = signal.route
-        var input = event.signal.input || {}
+        var input = event.signal.input || event.payload || {}
         rememberedUrl = options.baseUrl + urlMapper.stringify(route, input)
       }
     }
@@ -113,8 +120,8 @@ function Router (routesConfig, options) {
     function onModulesLoaded (event) {
       if (rememberedUrl) return
       if (Array.isArray(initialSignals) && initialSignals.length === 0) {
-        setTimeout(onUrlChange)
         initialSignals = null
+        onUrlChange(null, true)
       }
     }
 
