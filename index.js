@@ -140,7 +140,12 @@ function Router (routesConfig, options) {
       },
 
       getMatchedRoute: function getMatchedRoute () {
-        return urlMapper.map(addressbar.value.replace(addressbar.origin + options.baseUrl, ''), routesConfig)
+        var map = urlMapper.map(addressbar.value.replace(addressbar.origin + options.baseUrl, ''), routesConfig)
+        return {
+          route: map.route,
+          signal: map.match,
+          params: map.values
+        }
       },
 
       getSignalUrl: function getSignalUrl (signalName, input) {

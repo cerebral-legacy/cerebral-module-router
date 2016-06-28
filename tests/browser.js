@@ -539,7 +539,7 @@ module.exports = {
     })
 
     this.controller.getSignals().match({ param: 'foo value' })
-    test.deepEqual(this.controller.getServices().router.getMatchedRoute(), { route: '/foo/:param', match: 'match', values: { param: 'foo value' } })
+    test.deepEqual(this.controller.getServices().router.getMatchedRoute(), { route: '/foo/:param', signal: 'match', params: { param: 'foo value' } })
     test.done()
   },
 
