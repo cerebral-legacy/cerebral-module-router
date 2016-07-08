@@ -17,13 +17,9 @@ An opinionated URL change handler for Cerebral
 ### Quickstart
 
 ```js
-import Cerebral from 'cerebral';
-import Model from 'cerebral-model-baobab'
-import Router from 'cerebral-module-router';
-import App from './modules/app';
+import Router from 'cerebral-module-router'
 
 controller.addModules({
-  app: App,
   router: Router({
     '/': 'app.homeOpened',
     '/messages': 'app.messagesOpened',
@@ -36,7 +32,7 @@ controller.addModules({
     // allowEscape: true,      // do not prevent navigation for triggered urls if no routes was matched and catch all route wasn't provided
     mapper: { query: true }    // options passed to url-mapper
   })
-);
+)
 ```
 
 ### [API documentation](http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.router)
