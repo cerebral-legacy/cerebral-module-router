@@ -8,8 +8,8 @@ delete global.history
 delete global.addEventListener
 
 // SETUP
-var Controller = require('cerebral')
-var Model = require('cerebral-model-baobab')
+var Controller = require('cerebral').Controller
+var Model = require('cerebral/models/immutable')
 var Router = require('./../index.js')
 
 module.exports['should work in node.js'] = function (test) {

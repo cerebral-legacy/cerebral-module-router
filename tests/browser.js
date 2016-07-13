@@ -20,8 +20,8 @@ global.addEventListener = function () {}
 global.document = {}
 
 // SETUP
-var Controller = require('cerebral')
-var Model = require('cerebral-model-baobab')
+var Controller = require('cerebral').Controller
+var Model = require('cerebral/models/immutable')
 var addressbar = require('addressbar')
 var Router = require('./../index.js')
 var redirect = Router.redirect

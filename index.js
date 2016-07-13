@@ -182,18 +182,16 @@ function Router (routesConfig, options) {
       controller.on('modulesLoaded', onModulesLoaded)
     }
 
-    if (controller.addContextProvider) {
-      var context = {}
-      context[MODULE] = {
-        path: module.path
-      }
-      controller.addContextProvider(context)
+    var context = {}
+    context[MODULE] = {
+      path: module.path
     }
+    controller.addContextProvider(context)
   }
 }
 
 var getRouterServices = function (context) {
-  var modulePath = context[MODULE] ? context[MODULE].path : context.modules[MODULE].path
+  var modulePath = context[MODULE].path
   return modulePath.reduce(function (services, key) {
     return services[key]
   }, context.services)
