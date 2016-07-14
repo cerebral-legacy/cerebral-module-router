@@ -444,11 +444,12 @@ module.exports = {
     test.done()
   },
 
-  'should throw on missing routes': function (test) {
-    test.throws(function () {
+  'should warn on missing routes': function (test) {
+    test.doesNotThrow(function () {
       Router()
     })
 
+    test.equal(this.warnMessage.length >= 0, true)
     test.done()
   },
 

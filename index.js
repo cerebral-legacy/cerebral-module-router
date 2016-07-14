@@ -22,7 +22,8 @@ function Router (routesConfig, options) {
   options = options || {}
 
   if (!routesConfig) {
-    throw new Error('Cerebral router - Routes configuration wasn\'t provided.')
+    console.warn('Cerebral router - Routes configuration wasn\'t provided.')
+    return function () {}
   } else {
     routesConfig = flattenConfig(routesConfig)
   }
