@@ -29,9 +29,11 @@ module.exports['should work in node.js'] = function (test) {
 
   var router = controller.getServices().router
 
+  router.trigger()
   router.trigger('/test')
+  router.trigger()
   router.detach()
 
-  test.expect(1)
+  test.expect(2)
   test.done()
 }
