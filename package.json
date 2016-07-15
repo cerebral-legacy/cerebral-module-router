@@ -44,8 +44,7 @@
   },
   "dependencies": {
     "addressbar": "^1.0.2",
-    "lodash.get": "^4.2.0",
-    "lodash.isobject": "^3.0.2",
+    "lodash": "^4.13.1",
     "url-mapper": "^1.1.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 var MODULE = 'cerebral-module-router'
-var isObject = require('lodash.isobject')
-var get = require('lodash.get')
+var isObject = require('lodash/isObject')
+var get = require('lodash/get')
 
 var Mapper = require('url-mapper')
 var addressbar
