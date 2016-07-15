@@ -228,32 +228,7 @@ module.exports = {
     this.controller.getSignals().test()
   },
 
-  'should restore url if remembering occured cerebral@0.33': function (test) {
-    test.expect(1)
-    var controller = this.controller
-
-    controller.addSignals({
-      foo: [ function checkAction () { test.ok(false) } ]
-    })
-
-    controller.on('modulesLoaded', function () {
-      setTimeout(function () {
-        test.equals(addressbar.value.replace(addressbar.origin, ''), '/foo/bar?baz=baz')
-        test.done()
-      })
-    })
-
-    controller.addModules({
-      router: Router({
-        '/foo/:bar': 'foo'
-      }, { mapper: { query: true } }),
-      devtools: function () {
-        controller.emit('predefinedSignal', { signal: { name: 'foo', input: { bar: 'bar', baz: 'baz' } } })
-      }
-    })
-  },
-
-  'should restore url if remembering occured cerebral@0.34': function (test) {
+  'should restore url if remembering occured': function (test) {
     test.expect(1)
     var controller = this.controller
 
@@ -446,7 +421,7 @@ module.exports = {
 
   'should warn on missing routes': function (test) {
     test.doesNotThrow(function () {
-      Router()
+      Router()()
     })
 
     test.equal(this.warnMessage.length >= 0, true)
