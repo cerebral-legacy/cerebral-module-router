@@ -191,16 +191,9 @@ function Router (routesConfig, options) {
   }
 }
 
-var getRouterServices = function (context) {
-  var modulePath = context[MODULE].path
-  return modulePath.reduce(function (services, key) {
-    return services[key]
-  }, context.services)
-}
-
 Router.redirect = function (url, params) {
-  function action (context) {
-    var services = getRouterServices(context)
+  function action (ctx) {
+    var services = get(ctx.services, ctx[MODULE].path)
 
     return services.redirect(url, params)
   }
