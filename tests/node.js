@@ -1,5 +1,5 @@
 // CLEANUP
-;['addressbar', './../index.js'].forEach(function (module) {
+;['addressbar', '../index.js', '../lib/router.js'].forEach(function (module) {
   delete require.cache[require.resolve(module)]
 })
 delete global.window

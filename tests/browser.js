@@ -23,8 +23,8 @@ global.document = {}
 var Controller = require('cerebral').Controller
 var Model = require('cerebral/models/immutable')
 var addressbar = require('addressbar')
-var Router = require('./../index.js')
-var redirect = Router.redirect
+var Router = require('../index.js')
+var redirect = require('../lib/redirect.js')
 
 function emit (url) {
   var defaultPrevented = false
@@ -116,6 +116,37 @@ module.exports = {
     console.warn = this.warn
 
     cb()
+  },
+
+  'should expose base router and accept custom mapper': function (test) {
+    var BaseRouter = require('../base')
+    test.expect(1)
+
+    this.controller.addSignals({
+      test: [ function checkAction () { test.ok(true) } ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: BaseRouter({
+        '/': 'test'
+      }, {
+        mapper: require('url-mapper')()
+      })
+    })
+
+    test.done()
+  },
+
+  'should throw if mapper wasn\'t provided to base': function (test) {
+    var BaseRouter = require('../base')
+    test.throws(function () {
+      BaseRouter({
+        '/': 'test'
+      })
+    })
+
+    test.done()
   },
 
   'should trigger sync with modulesLoaded event and run signal immediate': function (test) {
@@ -440,15 +471,6 @@ module.exports = {
       })
     })
 
-    test.done()
-  },
-
-  'should warn mapper options deprecation': function (test) {
-    test.doesNotThrow(function () {
-      Router({}, { mapper: { query: true } })
-    })
-
-    test.equal(this.warnMessage.length >= 0, true)
     test.done()
   },
 

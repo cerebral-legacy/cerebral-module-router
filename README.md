@@ -35,8 +35,6 @@ controller.addModules({
 )
 ```
 
-### [API documentation](http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.router)
-
 ### How it works
 
 The Cerebral Router is one of the least invasive routers out there.
