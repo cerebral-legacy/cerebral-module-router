@@ -24,7 +24,8 @@ var Controller = require('cerebral').Controller
 var Model = require('cerebral/models/immutable')
 var addressbar = require('addressbar')
 var Router = require('../index.js')
-var redirect = require('../lib/redirect.js')
+var redirect = require('../redirect.js')
+var redirectToSignal = require('../redirectToSignal.js')
 
 function emit (url) {
   var defaultPrevented = false
@@ -647,6 +648,32 @@ module.exports = {
       ],
       'missing': [
         redirect('/existing')
+      ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: Router({
+        '/existing': 'existing',
+        '/*': 'missing'
+      }, {
+        preventAutostart: true
+      })
+    })
+    emit('/missing')
+  },
+
+  'should provide redirectToSignal action factory': function (test) {
+    this.controller.addSignals({
+      'existing': [
+        function checkAction () {
+          test.ok(true)
+          test.equals(addressbar.pathname, '/existing')
+          test.done()
+        }
+      ],
+      'missing': [
+        redirectToSignal('existing')
       ]
     })
 
