@@ -33,7 +33,13 @@ function Router (routesConfig, options) {
     options.baseUrl = addressbar.pathname
   }
   options.baseUrl = (options.baseUrl || '') + (options.onlyHash ? '#' : '')
-  var urlMapper = Mapper(options.mapper)
+
+  if (options.mapper) {
+    options.query = options.mapper.query
+    console.warn('Cerebral router - passing options object to mapper is deprecated. Use router `query` option directly.')
+  }
+
+  var urlMapper = Mapper({ query: options.query })
 
   return function init (module, controller) {
     var signals = getRoutableSignals(routesConfig, controller.getSignals())

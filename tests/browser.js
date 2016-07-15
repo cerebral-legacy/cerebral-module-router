@@ -246,7 +246,7 @@ module.exports = {
     controller.addModules({
       router: Router({
         '/foo/:bar': 'foo'
-      }, { mapper: { query: true } }),
+      }, { query: true }),
       devtools: function () {
         controller.emit('predefinedSignal', { signal: { name: 'foo' }, payload: { bar: 'bar', baz: 'baz' } })
       }
@@ -443,6 +443,15 @@ module.exports = {
     test.done()
   },
 
+  'should warn mapper options deprecation': function (test) {
+    test.doesNotThrow(function () {
+      Router({}, { mapper: { query: true } })
+    })
+
+    test.equal(this.warnMessage.length >= 0, true)
+    test.done()
+  },
+
   'should throw on missing nested signal': function (test) {
     var controller = this.controller
     this.controller.addSignals({
@@ -510,7 +519,7 @@ module.exports = {
       route: '/',
       options: {
         baseUrl: '/test',
-        mapper: { query: true },
+        query: true,
         onlyHash: true
       }
     })

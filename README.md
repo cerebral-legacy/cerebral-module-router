@@ -30,7 +30,7 @@ controller.addModules({
     // baseUrl: '/',           // base part, that ignored on route match. detected automatically if `onlyHash` option set to true
     // preventAutostart: true, // prevents automatic triggering after `modulesLoaded` event
     // allowEscape: true,      // do not prevent navigation for triggered urls if no routes was matched and catch all route wasn't provided
-    mapper: { query: true }    // options passed to url-mapper
+    query: true                // option to enable query support in url-mapper
   })
 )
 ```
@@ -144,7 +144,7 @@ Given that you still be able to disable router at any time.
 Path-to-regexp is pretty powerfull, but sometimes you want your url would hold more information to pass your app.
 Usually it is done through queries. Using the same considerations as in previous point we decided that types should be preserved.
 We can enable query support with [`urlon`](https://github.com/vjeux/URLON) super powers of stringify/pasrse any JSON compatible object (any payload can be passed to signal, as fact).
-Just pass `mapper: { query: true }` to router options and any payload not defined in path part would be stringified to query part.
+Just pass `query: true` to router options and any payload not defined in path part would be stringified to query part.
 It is not easy to construct `urlon` queries by hands, but you never had to. Just keep reading.
 
 ### Create links
@@ -152,7 +152,7 @@ It is not easy to construct `urlon` queries by hands, but you never had to. Just
 Most times you need to have a links in app. It enables sharing url, opening url in new tab, etc.
 You can use [`getSignalUrl`](http://cerebral.github.io/cerebral-module-router/index.html#_index_d_.routerservice.getsignalurl) method exposed by router to avoid hardcoding urls within app.
 Please follow your view package documentation to see if it already have component to make a links.
-Fell free to create an issue on that package otherwise.
+Feel free to create an issue on that package otherwise.
 
 Link component will fallback to `onClick` event handler if router is absent.
 So you can disable router at any time even if you are using links.
