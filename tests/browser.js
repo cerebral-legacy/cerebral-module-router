@@ -20,11 +20,12 @@ global.addEventListener = function () {}
 global.document = {}
 
 // SETUP
-var Controller = require('cerebral')
-var Model = require('cerebral-model-baobab')
+var Controller = require('cerebral').Controller
+var Model = require('cerebral/models/immutable')
 var addressbar = require('addressbar')
-var Router = require('./../index.js')
-var redirect = Router.redirect
+var Router = require('../index.js')
+var redirect = require('../redirect.js')
+var redirectToSignal = require('../redirectToSignal.js')
 
 function emit (url) {
   var defaultPrevented = false
@@ -116,6 +117,37 @@ module.exports = {
     console.warn = this.warn
 
     cb()
+  },
+
+  'should expose base router and accept custom mapper': function (test) {
+    var BaseRouter = require('../base')
+    test.expect(1)
+
+    this.controller.addSignals({
+      test: [ function checkAction () { test.ok(true) } ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: BaseRouter({
+        '/': 'test'
+      }, {
+        mapper: require('url-mapper')()
+      })
+    })
+
+    test.done()
+  },
+
+  'should throw if mapper wasn\'t provided to base': function (test) {
+    var BaseRouter = require('../base')
+    test.throws(function () {
+      BaseRouter({
+        '/': 'test'
+      })
+    })
+
+    test.done()
   },
 
   'should trigger sync with modulesLoaded event and run signal immediate': function (test) {
@@ -228,7 +260,7 @@ module.exports = {
     this.controller.getSignals().test()
   },
 
-  'should restore url if remembering occured cerebral@0.33': function (test) {
+  'should restore url if remembering occured': function (test) {
     test.expect(1)
     var controller = this.controller
 
@@ -246,32 +278,7 @@ module.exports = {
     controller.addModules({
       router: Router({
         '/foo/:bar': 'foo'
-      }, { mapper: { query: true } }),
-      devtools: function () {
-        controller.emit('predefinedSignal', { signal: { name: 'foo', input: { bar: 'bar', baz: 'baz' } } })
-      }
-    })
-  },
-
-  'should restore url if remembering occured cerebral@0.34': function (test) {
-    test.expect(1)
-    var controller = this.controller
-
-    controller.addSignals({
-      foo: [ function checkAction () { test.ok(false) } ]
-    })
-
-    controller.on('modulesLoaded', function () {
-      setTimeout(function () {
-        test.equals(addressbar.value.replace(addressbar.origin, ''), '/foo/bar?baz=baz')
-        test.done()
-      })
-    })
-
-    controller.addModules({
-      router: Router({
-        '/foo/:bar': 'foo'
-      }, { mapper: { query: true } }),
+      }, { query: true }),
       devtools: function () {
         controller.emit('predefinedSignal', { signal: { name: 'foo' }, payload: { bar: 'bar', baz: 'baz' } })
       }
@@ -444,11 +451,12 @@ module.exports = {
     test.done()
   },
 
-  'should throw on missing routes': function (test) {
-    test.throws(function () {
-      Router()
+  'should warn on missing routes': function (test) {
+    test.doesNotThrow(function () {
+      Router()()
     })
 
+    test.equal(this.warnMessage.length >= 0, true)
     test.done()
   },
 
@@ -548,7 +556,7 @@ module.exports = {
       route: '/',
       options: {
         baseUrl: '/test',
-        mapper: { query: true },
+        query: true,
         onlyHash: true
       }
     })
@@ -654,6 +662,32 @@ module.exports = {
       ],
       'missing': [
         redirect('/existing')
+      ]
+    })
+
+    this.controller.addModules({
+      devtools: function () {},
+      router: Router({
+        '/existing': 'existing',
+        '/*': 'missing'
+      }, {
+        preventAutostart: true
+      })
+    })
+    emit('/missing')
+  },
+
+  'should provide redirectToSignal action factory': function (test) {
+    this.controller.addSignals({
+      'existing': [
+        function checkAction () {
+          test.ok(true)
+          test.equals(addressbar.pathname, '/existing')
+          test.done()
+        }
+      ],
+      'missing': [
+        redirectToSignal('existing')
       ]
     })
 

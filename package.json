@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "pretest": "standard",
-    "test": "nodeunit tests && npm i cerebral@^0.34.0 && nodeunit tests",
-    "posttest": "npm i",
+    "test": "nodeunit tests",
     "coverage": "nyc --reporter=lcov --reporter=text npm run test",
     "postcoverage": "cat ./coverage/lcov.info | coveralls",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
@@ -45,13 +44,11 @@
   },
   "dependencies": {
     "addressbar": "^1.0.2",
-    "lodash.get": "^4.2.0",
-    "lodash.isobject": "^3.0.2",
+    "lodash": "^4.13.1",
     "url-mapper": "^1.1.0"
   },
   "devDependencies": {
-    "cerebral": "^0.33.31",
-    "cerebral-model-baobab": "^0.4.8",
+    "cerebral": "^0.35.0-0",
     "commitizen": "^2.7.6",
     "conventional-changelog": "0.0.17",
     "coveralls": "^2.11.9",
@@ -60,11 +57,11 @@
     "nodeunit": "^0.9.1",
     "nyc": "^6.4.0",
     "semantic-release": "^4.3.5",
-    "standard": "^6.0.8",
+    "standard": "^7.1.2",
     "validate-commit-msg": "^2.5.0"
   },
   "peerDependencies": {
-    "cerebral": "^0.33.31 || ^0.34.0"
+    "cerebral": "^0.35.0-0"
   },
   "nyc": {
     "exclude": [

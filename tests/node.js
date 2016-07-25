@@ -1,5 +1,5 @@
 // CLEANUP
-;['addressbar', './../index.js'].forEach(function (module) {
+;['addressbar', '../index.js', '../lib/router.js'].forEach(function (module) {
   delete require.cache[require.resolve(module)]
 })
 delete global.window
@@ -8,8 +8,8 @@ delete global.history
 delete global.addEventListener
 
 // SETUP
-var Controller = require('cerebral')
-var Model = require('cerebral-model-baobab')
+var Controller = require('cerebral').Controller
+var Model = require('cerebral/models/immutable')
 var Router = require('./../index.js')
 
 module.exports['should work in node.js'] = function (test) {
@@ -29,9 +29,11 @@ module.exports['should work in node.js'] = function (test) {
 
   var router = controller.getServices().router
 
+  router.trigger()
   router.trigger('/test')
+  router.trigger()
   router.detach()
 
-  test.expect(1)
+  test.expect(2)
   test.done()
 }
