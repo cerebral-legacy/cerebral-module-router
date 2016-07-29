@@ -10,30 +10,8 @@ An opinionated URL change handler for Cerebral
 [![js-standard-style][standard-image]][standard-url]
 [![Discord][discord-image]][discord-url]
 
-### Install
-
-`npm install cerebral-module-router`
-
-### Quickstart
-
-```js
-import Router from 'cerebral-module-router'
-
-controller.addModules({
-  router: Router({
-    '/': 'app.homeOpened',
-    '/messages': 'app.messagesOpened',
-    '/messages/:id': 'app.messageOpened',
-    '/*': 'app.notFoundOpened'
-  }, {
-    onlyHash: true,            // use only hash part of url for matching
-    // baseUrl: '/',           // base part, that ignored on route match. detected automatically if `onlyHash` option set to true
-    // preventAutostart: true, // prevents automatic triggering after `modulesLoaded` event
-    // allowEscape: true,      // do not prevent navigation for triggered urls if no routes was matched and catch all route wasn't provided
-    query: true                // option to enable query support in url-mapper
-  })
-)
-```
+### How to use
+Go to [http://www.cerebraljs.com/documentation/cerebral-module-router](http://www.cerebraljs.com/documentation/cerebral-module-router)
 
 ### How it works
 
