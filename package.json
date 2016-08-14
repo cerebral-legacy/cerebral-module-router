@@ -44,11 +44,10 @@
   },
   "dependencies": {
     "addressbar": "^1.0.2",
-    "lodash": "^4.13.1",
-    "url-mapper": "^1.1.0"
+    "url-mapper": "^1.1.1"
   },
   "devDependencies": {
-    "cerebral": "^0.35.0-0",
+    "cerebral": "^1.0.0",
     "commitizen": "^2.7.6",
     "conventional-changelog": "0.0.17",
     "coveralls": "^2.11.9",
@@ -61,7 +60,7 @@
     "validate-commit-msg": "^2.5.0"
   },
   "peerDependencies": {
-    "cerebral": "^0.35.0-0"
+    "cerebral": "^1.0.0"
   },
   "nyc": {
     "exclude": [
