@@ -1,5 +1,8 @@
 # cerebral-module-router
-An opinionated URL change handler for Cerebral
+An opinionated URL change handler for Cerebral 1.x
+
+For Cerebral 2 use [cerebral-router](https://cerebral.github.io/cerebral-website/api/08_router.html)
+instead.
 
 [![NPM version][npm-image]][npm-url]
 [![Build status][travis-image]][travis-url]
@@ -42,7 +45,7 @@ It would trigger matched signal if url has changed.
 
 #### Just works with `devtools` time traveling and `recorder`
 
-Both [`devtools`](https://github.com/cerebral/cerebral-module-devtools) and [`recorder`](https://github.com/cerebral/cerebral-module-recorder) uses internal `cerebral` mechanism of predefined signal run.
+Both [`devtools`](https://github.com/cerebral-legacy/cerebral-module-devtools) and [`recorder`](https://github.com/cerebral-legacy/cerebral-module-recorder) uses internal `cerebral` mechanism of predefined signal run.
 Router will update `addressbar` if any predefined signal was bound to route.
 So your `addressbar` will be kept in sync even using recordings and time travel debugging.
 
