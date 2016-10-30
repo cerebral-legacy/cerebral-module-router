@@ -1,14 +1,13 @@
 {
   "name": "cerebral-module-router",
-  "version": "0.0.0-semantically-released",
+  "version": "0.17.1",
   "description": "An opinionated URL change handler for Cerebral",
   "main": "index.js",
   "scripts": {
     "pretest": "standard",
     "test": "nodeunit tests",
     "coverage": "nyc --reporter=lcov --reporter=text npm run test",
-    "postcoverage": "cat ./coverage/lcov.info | coveralls",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "postcoverage": "cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -34,13 +33,7 @@
     },
     "cz-customizable": {
       "config": "node_modules/cz-customizable/cz-config-EXAMPLE.js"
-    },
-    "ghooks": {
-      "commit-msg": "validate-commit-msg"
     }
-  },
-  "release": {
-    "analyzeCommits": "./sr-prerelease.js"
   },
   "dependencies": {
     "addressbar": "^1.0.2",
@@ -49,15 +42,11 @@
   "devDependencies": {
     "cerebral": "^1.0.0",
     "commitizen": "^2.7.6",
-    "conventional-changelog": "0.0.17",
     "coveralls": "^2.11.9",
     "cz-customizable": "^3.1.0",
-    "ghooks": "^1.2.0",
     "nodeunit": "^0.9.1",
     "nyc": "^6.4.0",
-    "semantic-release": "^4.3.5",
-    "standard": "^7.1.2",
-    "validate-commit-msg": "^2.5.0"
+    "standard": "^7.1.2"
   },
   "peerDependencies": {
     "cerebral": "^1.0.0"
