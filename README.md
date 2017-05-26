@@ -1,7 +1,7 @@
 # cerebral-module-router
 An opinionated URL change handler for Cerebral 1.x
 
-For Cerebral 2 use [@cerebral/router](https://github.com/cerebral/cerebral/tree/master/packages/router)
+For Cerebral 2 use [@cerebral/router](https://github.com/cerebral/cerebral/blob/master/packages/node_modules/%40cerebral/router#readme)
 instead.
 
 [![NPM version][npm-image]][npm-url]
